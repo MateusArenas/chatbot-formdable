@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Text, View } from 'react-native';
-import { useHeaderHeight } from '@react-navigation/stack';
-import ChatBot from './Chatbot';
+// import { useHeaderHeight } from '@react-navigation/stack';
+import ChatBot from '../components';
 
 import { cpf, cnpj } from 'cpf-cnpj-validator';
 import { validate } from 'react-email-validator';
@@ -32,7 +32,7 @@ const Review = React.memo((props) => {
 })
 
 const SimpleForm = () => {
-    const height = useHeaderHeight();
+    // const height = useHeaderHeight();
 
     const [fields, setFields] = React.useState({})
 
@@ -63,7 +63,7 @@ const SimpleForm = () => {
     return (
       <>
       <StatusBar barStyle="light-content"  backgroundColor="black" />
-        <ChatBot hideBotAvatar hideHeader hideUserAvatar 
+        <ChatBot botDelay={250} hideBotAvatar hideHeader hideUserAvatar 
         userFontColor={"black"} userBubbleColor={"#c4c9cd"}
         optionFontColor={"black"} optionBubbleColor={"#fafafa"}
         botFontColor={"#fafafa"} botBubbleColor={"#272527"} bubbleStyle={{ padding: 10 }}
@@ -74,7 +74,7 @@ const SimpleForm = () => {
         placeholder={"Digite aqui..."}
         scrollViewProps={{ 
           contentContainerStyle: {
-            paddingTop: height || STATUSBAR_HEIGHT,
+            paddingTop: 0 || STATUSBAR_HEIGHT,
             paddingBottom: 0 || STATUSBAR_HEIGHT,
             flexGrow: 1
           }
@@ -95,7 +95,7 @@ const SimpleForm = () => {
           {
             id: 'name-quest',
             message: 'Qual é o seu nome?',
-            trigger: 'cep',
+            trigger: 'name',
           },
           {
             id: 'name',
