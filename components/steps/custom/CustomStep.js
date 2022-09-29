@@ -3,31 +3,23 @@ import PropTypes from 'prop-types';
 import Loading from '../common/Loading';
 import CustomStepContainer from './CustomStepContainer';
 
-class CustomStep extends Component {
-  /* istanbul ignore next */
-  constructor(props) {
-    super(props);
+const CustomStep = props => {
+  const [loading, setLoading] = React.useState(true);
 
-    this.state = {
-      loading: true,
-    };
-
-    this.renderComponent = this.renderComponent.bind(this);
-  }
-
-  componentDidMount() {
-    const { delay } = this.props;
-    const { waitAction } = this.props.step;
+  React.useEffect(() => {
+    const { delay } = props;
+    const { waitAction } = props.step;
     setTimeout(() => {
-      this.setState({ loading: false });
+      setLoading(false);
       if (!waitAction) {
-        this.props.triggerNextStep();
+        props.triggerNextStep();
       }
     }, delay);
-  }
 
-  renderComponent() {
-    const { step, steps, previousStep, triggerNextStep } = this.props;
+  }, [props]);
+
+  const renderComponent = React.useCallback(() => {
+    const { step, steps, previousStep, triggerNextStep } = props;
     const { component } = step;
     return React.cloneElement(component, {
       step,
@@ -35,17 +27,12 @@ class CustomStep extends Component {
       previousStep,
       triggerNextStep,
     });
-  }
-
-  render() {
-    const { loading } = this.state;
-    const { style, step } = this.props;
-
+  }, [])
 
     return (
       <CustomStepContainer
         className="rsc-cs"
-        style={[style, step?.metadata?.hide && { 
+        style={[props?.style, props?.step?.metadata?.hide && { 
           backgroundColor: 'transparent', borderColor: 'transparent',
           display: loading ? 'flex' : 'none'
         } ]}
@@ -53,23 +40,14 @@ class CustomStep extends Component {
         {
           loading ? (
             <Loading
-              color={step.loadingColor}
+              color={props?.step?.loadingColor}
               custom={true}
             />
-          ) : this.renderComponent()
+          ) : renderComponent()
         }
       </CustomStepContainer>
     );
-  }
 }
 
-CustomStep.propTypes = {
-  delay: PropTypes.number.isRequired,
-  step: PropTypes.object.isRequired,
-  steps: PropTypes.object.isRequired,
-  style: PropTypes.object.isRequired,
-  previousStep: PropTypes.object.isRequired,
-  triggerNextStep: PropTypes.func.isRequired,
-};
+export default React.memo(CustomStep);
 
-export default CustomStep;

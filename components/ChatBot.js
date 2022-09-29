@@ -232,6 +232,8 @@ class ChatBot extends Component {
       currentStep.trigger = this.getTriggeredStep(data.trigger, data.value);
     }
 
+
+
     if (isEnd) {
       this.handleEnd();
     } else if (currentStep.options && data) {
@@ -293,7 +295,7 @@ class ChatBot extends Component {
 
       if (nextStep.user) {
         this.setState({ editable: true });
-        this.inputRef.focus();
+        this.inputRef?.focus?.();
       } else {
         renderedSteps.push(nextStep);
         previousSteps.push(nextStep);
@@ -305,6 +307,35 @@ class ChatBot extends Component {
         currentStep,
         previousStep,
       });
+
+      if (data && data?.overwrite) {
+
+
+        const overwriteSteps = previousSteps.map(renderedStep => 
+          Object.keys(data?.overwrite).includes(renderedStep?.id) ? ({
+            ...renderedStep,
+            value: data?.overwrite?.[renderedStep?.id] || renderedStep?.value
+          }) : renderedStep
+        )
+  
+        Object.keys(data?.overwrite).forEach(key => {
+          if (!overwriteSteps.find(renderedStep => key === renderedStep?.id)) {
+            overwriteSteps.push({
+              id: key,
+              value: data?.overwrite?.[key],
+              user: true,
+              trigger: data?.defaultTrigger || '7',
+            })
+          }
+        })
+  
+        this.setState({
+          renderedSteps,
+          previousSteps: overwriteSteps,
+          currentStep,
+          previousStep,
+        });
+      }
 
       Keyboard.dismiss();
     }
@@ -385,7 +416,7 @@ class ChatBot extends Component {
           inputInvalid: false,
           editable: true,
         });
-        this.inputRef.focus();
+        this.inputRef?.focus?.();
       }, 2000);
 
       return true;
@@ -655,9 +686,6 @@ ChatBot.defaultProps = {
 };
 
 export default ChatBot;
-
-
-
 
 const ChatbotTextInput = React.forwardRef((props, ref) => {
   if(!props?.type) return <TextInput ref={ref} {...props} />

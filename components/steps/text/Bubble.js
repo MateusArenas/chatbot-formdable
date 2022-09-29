@@ -1,7 +1,7 @@
 import { Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const _maxWidth = width * 0.6;
+const _maxWidth = width * 0.7;
 
 import React from 'react';
 import { View } from 'react-native';

@@ -6,7 +6,8 @@ const Button = (props) => {
     <Text {...props} 
       style={[
         {
-          color: props.invalid ? '#FFF' : props.fontColor
+          color: props.invalid ? '#FFF' : props.fontColor,
+          fontSize: 16
         },
         props.style
       ]}

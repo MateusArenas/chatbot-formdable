@@ -1,52 +1,38 @@
-// import { Component } from '@react-navigation/stack';
-// import { useHeaderHeight } from '@react-navigation/elements'
 import React, { Component } from 'react';
 import { Text, View } from 'react-native';
-import { NativeModules, Platform } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/stack';
+import ChatBot from './Chatbot';
 
-import ChatBot from '../components';
+import { cpf, cnpj } from 'cpf-cnpj-validator';
+import { validate } from 'react-email-validator';
 
+import { Platform, NativeModules, StatusBar } from 'react-native';
+import axios from 'axios';
 const { StatusBarManager } = NativeModules;
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
 
-          //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
-
-const Review = (props) => {
-
-    return (
-      <View style={{ width: '100%' }}>
-        <Text>Summary</Text>
-        <View>
-          <View>
-            <View>
-              <Text>Estado</Text>
-              <Text>{props?.steps?.state?.value || props?.steps?.andress?.value?.state}</Text>
-            </View>
-            <View>
-              <Text>Cidade</Text>
-              <Text>{props?.steps?.city?.value || props?.steps?.andress?.value?.city}</Text>
-            </View>
-            <View>
-              <Text>Bairro</Text>
-              <Text>{props?.steps?.district?.value || props?.steps?.andress?.value?.district}</Text>
-            </View>
-            <View>
-              <Text>Rua</Text>
-              <Text>{props?.steps?.street?.value || props?.steps?.andress?.value?.street}</Text>
-            </View>
-            <View>
-              <Text>Numero</Text>
-              <Text>{props?.steps?.number?.value}</Text>
-            </View>
-          </View>
+const Review = React.memo((props) => {
+  const [state, setState] = React.useState({})
+  React.useEffect(() => {
+    setState(props.steps);
+  }, [])
+  return (
+    <View style={{ width: '100%' }}>
+      {props.fields?.map(field => (
+        <View key={field.value}
+          style={{  width: '100%'}}
+        >
+          <Text style={{ color: 'white', opacity: .5, fontSize: 16 }}>{field?.label}: </Text>
+          <Text style={{ color: 'white', fontSize: 16 }}>{state?.[field?.value]?.value}</Text>
         </View>
-      </View>
-    );
-}
+      ))}
+    </View>
+  );
+})
 
 const SimpleForm = () => {
-    // const height = useHeaderHeight();
+    const height = useHeaderHeight();
 
     const [fields, setFields] = React.useState({})
 
@@ -56,33 +42,45 @@ const SimpleForm = () => {
 
     const LoadingAwait = React.useCallback(props => {
       React.useEffect(() => {
-        setTimeout(() => {
-          props.triggerNextStep({ value: { state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA" } });
-        }, 3000);
+        axios.get(`https://viacep.com.br/ws/${props.steps['cep'].value}/json/`).then(({ data }) => {
+
+          props.triggerNextStep({ 
+            defaultTrigger: '7',
+            overwrite: { 
+              state: data.uf, 
+              city: data.localidade, 
+              district: data.bairro, 
+              street: data.logradouro,
+              complement: data.complemento,
+            },
+          });
+        })
       }, [])
 
       return null
     }, [])
 
     return (
-      <ChatBot hideBotAvatar hideHeader hideUserAvatar 
-      userFontColor={"black"} userBubbleColor={"#c4c9cd"}
-      optionFontColor={"black"} optionBubbleColor={"#fafafa"}
-      botFontColor={"#fafafa"} botBubbleColor={"#272527"} bubbleStyle={{ padding: 10 }}
-      footerStyle={{ backgroundColor: '#242124', borderTop: 0 }}
-      inputStyle={{ backgroundColor: 'rgba(0,0,0,.2)', color: '#fafafa' }}
-      submitButtonStyle={{ backgroundColor: 'rgba(0,0,0,.3)'}}
-      submitButtonContent={"Enviar"}
-      placeholder={"Digite aqui..."}
-      scrollViewProps={{ 
-        contentContainerStyle: {
-          paddingTop: 0 || STATUSBAR_HEIGHT,
-          paddingBottom: 0 || STATUSBAR_HEIGHT,
-          flexGrow: 1
-        }
-      }}
-      contentStyle={{ backgroundColor: '#161316', borderBottom: 0, padding: 12 }}
-      keyboardVerticalOffset={0}
+      <>
+      <StatusBar barStyle="light-content"  backgroundColor="black" />
+        <ChatBot hideBotAvatar hideHeader hideUserAvatar 
+        userFontColor={"black"} userBubbleColor={"#c4c9cd"}
+        optionFontColor={"black"} optionBubbleColor={"#fafafa"}
+        botFontColor={"#fafafa"} botBubbleColor={"#272527"} bubbleStyle={{ padding: 10 }}
+        footerStyle={{ backgroundColor: '#242124', borderTop: 0 }}
+        inputStyle={{ backgroundColor: 'rgba(0,0,0,.2)', color: '#fafafa', fontSize: 16 }}
+        submitButtonStyle={{ backgroundColor: 'rgba(0,0,0,.3)', fontSize: 16 }}
+        submitButtonContent={"Enviar"}
+        placeholder={"Digite aqui..."}
+        scrollViewProps={{ 
+          contentContainerStyle: {
+            paddingTop: height || STATUSBAR_HEIGHT,
+            paddingBottom: 0 || STATUSBAR_HEIGHT,
+            flexGrow: 1
+          }
+        }}
+        contentStyle={{ backgroundColor: '#161316', borderBottom: 0, padding: 12 }}
+        keyboardVerticalOffset={0}
         steps={[
           {
             id: '0',
@@ -92,20 +90,20 @@ const SimpleForm = () => {
           {
             id: 'wellcome',
             message: "Que bom ver você aqui",
-            trigger: '1'
+            trigger: 'name-quest'
           },
           {
-            id: '1',
+            id: 'name-quest',
             message: 'Qual é o seu nome?',
-            trigger: 'name',
+            trigger: 'cep',
           },
           {
             id: 'name',
             user: true,
-            trigger: '3',
+            trigger: 'product-quest',
           },
           {
-            id: '3',
+            id: 'product-quest',
             message: 'Olá {previousValue}! Qual é o tipo de produto que deseja contratar?',
             trigger: 'product',
           },
@@ -131,14 +129,17 @@ const SimpleForm = () => {
             },
             validator: (value) => {
               if (!(/\S+@\S+\.\S+/).test(value)) {
-                return 'formato de email invalido.';
+                return 'Formato de email inválido.';
+              } 
+              if (!validate(value)) {
+                return 'E-mail do comprador inválido';
               } 
               return true;
             },
           },
           {
             id: 'cell-quest',
-            message: 'Qual é o seu número de celular?',
+            message: 'Qual é o seu número de telefone?',
             trigger: 'cell',
           },
           {
@@ -156,22 +157,30 @@ const SimpleForm = () => {
               }
             },
             validator: (value) => {
-              if (value.match(/\d/g).length!==11) {
-                return 'telefone celular invalido.';
-              } 
+              if (value.match(/\d/g).length < 10) {
+                return 'telefone celular inválido.';
+              }
+              const ddd = value.match(/[ ]?\(?\d+\)?[]?/)?.[0];
+              if (ddd) {
+                if(!allDDDs.map(dddNumber => `(${dddNumber})`).includes(ddd)) {
+                  return 'DDD inválido.';
+                }
+              } else {
+                return 'Não há DDD no número.';
+              }
               return true;
             },
           },
           {
             id: 'phone-require-quest',
-            message: 'Deseja informar o seu telefone?',
+            message: 'Deseja informar outro telefone de contato?',
             trigger: 'phone-require',
           },
           {
             id: 'phone-require',
             options: [
-              { label: 'Sim', trigger: 'phone-quest' },
-              { label: 'Não', trigger: 'ceep-quest' },
+              { value: 'yes', label: 'Sim', trigger: 'phone-quest' },
+              { value: 'no', label: 'Não', trigger: 'socialReason-quest' },
             ],
           },
           {
@@ -182,7 +191,7 @@ const SimpleForm = () => {
           {
             id: 'phone',
             user: true,
-            trigger: 'ceep-quest',
+            trigger: 'socialReason-quest',
             inputAttributes: {
               textContentType: "telephoneNumber",
               keyboardType: "numeric",
@@ -194,15 +203,23 @@ const SimpleForm = () => {
               }
             },
             validator: (value) => {
-              if (value?.match(/\d/g).length!==10) {
-                return 'Formato de telefone invalido.';
-              } 
+              if (value.match(/\d/g).length < 10) {
+                return 'telefone celular inválido.';
+              }
+              const ddd = value.match(/[ ]?\(?\d+\)?[]?/)?.[0];
+              if (ddd) {
+                if(!allDDDs.map(dddNumber => `(${dddNumber})`).includes(ddd)) {
+                  return 'DDD inválido.';
+                }
+              } else {
+                return 'Não há DDD no número.';
+              }
               return true;
             },
           },
           {
             id: 'socialReason-quest',
-            message: 'Informe a sua Razão Social',
+            message: 'Informe a Razão Social',
             trigger: 'socialReason',
           },
           {
@@ -214,7 +231,7 @@ const SimpleForm = () => {
           {
             id: 'fantasyName-quest',
             message: 'Informe o Nome Fantasia',
-            trigger: 'socialReason',
+            trigger: 'fantasyName',
           },
           {
             id: 'fantasyName',
@@ -230,27 +247,33 @@ const SimpleForm = () => {
           {
             id: 'cnpj',
             user: true,
-            trigger: 'ceep-quest',
+            inputAttributes: { type: 'cnpj' },
+            validator:  (value) => {
+              if (!cnpj.isValid(value)) {
+                return 'cnpj inválido.';
+              } 
+              return true;
+            },
+            trigger: 'cep-quest',
           },
 
           {
-            id: 'ceep-quest',
-            message: 'Informe o CEEP',
-            trigger: 'ceep',
+            id: 'cep-quest',
+            message: 'Informe o CEP',
+            trigger: 'cep',
           },
           {
-            id: 'ceep',
+            id: 'cep',
             user: true,
-            trigger: ({ value, steps }) => 'andress',
+            trigger: 'andress',
             inputAttributes: {
               textContentType: "postalCode",
               keyboardType: "numeric",
               type: 'zip-code',
             },
             validator:  (value) => {
-              // "09341-450" testa com traço
               if (!(/[0-9]{5}-[0-9]{3}/g).test(value)) {
-                return 'Formato de ceep invalido.';
+                return 'Formato de cep inválido.';
               } 
               return true;
             },
@@ -264,28 +287,125 @@ const SimpleForm = () => {
           //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
           {
             id: 'number-quest',
-            message: 'Numero do endereço?',
+            message: 'Número do endereço?',
             trigger: 'number',
           },
           {
             id: 'number',
             user: true,
-            trigger: '7',
-            inputAttributes: {
-              keyboardType: "number-pad",
+            trigger: 'complement-require-quest',
+            inputAttributes: { keyboardType: "number-pad" },
+            validator:  (value) => {
+              if (!(new RegExp('^[0-9]*$')).test(value)) {
+                return 'Somente números.';
+              } 
+              return true;
             },
           },
           {
+            id: 'complement-require-quest',
+            message: 'Há um complemento?',
+            trigger: 'complement-require',
+          },
+          {
+            id: 'complement-require',
+            options: [
+              { value: 'yes', label: 'Sim', trigger: 'complement-quest' },
+              { value: 'no', label: 'Não', trigger: '7' },
+            ],
+          },
+          {
+            id: 'complement-quest',
+            message: 'Insira o complemento',
+            trigger: 'complement',
+          },
+          {
+            id: 'complement',
+            user: true,
+            trigger: '7',
+          },
+          {
             id: '7',
-            message: 'Finaliza',
-            trigger: 'review',
+            message: 'Vamos lá falta pouco!😉',
+            trigger: 'review-init',
+          },
+          //aqui
+          {
+            id: 'review-init',
+            component: <Review fields={[
+              { label: "Nome", value: "name" }, 
+              { label: "Email", value: "email" }, 
+              { label: "Nome Fantasia", value: "fantasyName" }, 
+              { label: "Razão Social", value: "socialReason" }, 
+              { label: "Tipo de Produto", value: "product" }, 
+              { label: "CNPJ", value: "cnpj" }, 
+            ]} />,
+            asMessage: true,
+            trigger: 'update-init',
+          },
+          {
+            id: 'update-init',
+            message: 'Deseja atualizar algum campo?',
+            trigger: 'update-init-question',
+          },
+          {
+            id: 'update-init-question',
+            options: [
+              { value: 'yes', label: 'Sim', trigger: 'update-init-yes' },
+              { value: 'no', label: 'Não', trigger: 'review' },
+            ],
+          },
+          {
+            id: 'update-init-yes',
+            message: 'Qual campo você deseja atualizar?',
+            trigger: 'update-init-fields',
           },
           //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
           {
-            id: 'state',
-            user: true,
-            trigger: 'update',
+            id: 'update-init-fields',
+            options: [
+              { value: 'update-name', label: 'Nome*', trigger: 'update-name' },
+              { value: 'update-email', label: 'Email*', trigger: 'update-email' },
+              { value: 'update-fantasyName', label: 'Nome Fantasia*', trigger: 'update-fantasyName' },
+              { value: 'update-socialReason', label: 'Razão Social*', trigger: 'update-socialReason' },
+              { value: 'update-product', label: 'Tipo de Produto*', trigger: 'update-product' },
+              { value: 'update-cnpj', label: 'CNPJ*', trigger: 'update-cnpj' },
+              
+            ],
           },
+          {
+            id: 'update-name',
+            update: 'name',
+            trigger: 'review-init',
+          },
+          {
+            id: 'update-email',
+            update: 'email',
+            trigger: 'review-init',
+          },
+          {
+            id: 'update-fantasyName',
+            update: 'fantasyName',
+            trigger: 'review-init',
+          },
+          {
+            id: 'update-socialReason',
+            update: 'socialReason',
+            trigger: 'review-init',
+          },
+          {
+            id: 'update-product',
+            update: 'product',
+            trigger: 'review-init',
+          },
+          {
+            id: 'update-cnpj',
+            update: 'cnpj',
+            trigger: 'review-init',
+          },
+          //fim aqui
+          //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
+
           {
             id: 'city',
             user: true,
@@ -303,42 +423,81 @@ const SimpleForm = () => {
           },
           {
             id: 'review',
-            component: <Review />,
+            component: <Review fields={[
+              { label: "CEP", value: "cep" }, 
+              { label: "Estado", value: "state" }, 
+              { label: "Cidade", value: "city" }, 
+              { label: "Bairro", value: "district" }, 
+              { label: "Rua", value: "street" }, 
+              { label: "Número", value: "number" }, 
+              { label: "Complemento", value: "complement" }, 
+            ]} />,
             asMessage: true,
             trigger: 'update',
           },
           {
             id: 'update',
-            message: 'Would you like to update some field?',
+            message: 'Deseja atualizar algum campo?',
             trigger: 'update-question',
           },
           {
             id: 'update-question',
             options: [
-              { label: 'Yes', trigger: 'update-yes' },
-              { label: 'No', trigger: 'end-message' },
+              { value: 'yes', label: 'Sim', trigger: 'update-yes' },
+              { value: 'no', label: 'Não', trigger: 'end-message' },
             ],
           },
           {
             id: 'update-yes',
-            message: 'What field would you like to update?',
+            message: 'Qual campo você deseja atualizar?',
             trigger: 'update-fields',
           },
           //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
           {
             id: 'update-fields',
             options: [
-              { label: 'Estado*', trigger: 'update-state' },
-              { label: 'Cidade*', trigger: 'update-city' },
-              { label: 'Bairro*', trigger: 'update-district' },
-              { label: 'Rua*', trigger: 'update-street' },
-              { label: 'Numero*', trigger: 'update-number' },
+              { value: 'update-cep', label: "CEP*", trigger: "update-cep" }, 
+              { value: 'update-state', label: 'Estado*', trigger: 'update-state' },
+              { value: 'update-city', label: 'Cidade*', trigger: 'update-city' },
+              { value: 'update-district', label: 'Bairro*', trigger: 'update-district' },
+              { value: 'update-street', label: 'Rua*', trigger: 'update-street' },
+              { value: 'update-number', label: 'Número*', trigger: 'update-number' },
+              { value: 'update-complement', label: "Complemento", trigger: "update-complement" }, 
             ],
+          },
+          {
+            id: 'update-cep',
+            update: 'cep',
+            trigger: 'andress-update-fields-quest',
+          },
+          {
+            id: 'andress-update-fields-quest',
+            message: 'Deseja atualizar (estado, cidade, bairro, rua, número e complemento) com base no CEP: {previousValue} ?',
+            trigger: 'andress-update-fields-require',
+          },
+          {
+            id: 'andress-update-fields-require',
+            options: [
+              { value: 'yes-7', label: 'Sim', trigger: 'andress-reload' },
+              { value: 'no-1', label: 'Não', trigger: '7' },
+            ],
+          },
+          {
+            id: 'andress-reload',
+            waitAction: true, metadata: { hide: true },
+            component: <LoadingAwait />,
+            trigger: '7',
           },
           {
             id: 'update-state',
             update: 'state',
             trigger: '7',
+          },
+          {
+            id: 'state',
+            options: allStates.map(state => ({
+              value: state, label: state, trigger: 'update'
+            })),
           },
           {
             id: 'update-city',
@@ -361,24 +520,97 @@ const SimpleForm = () => {
             trigger: '7',
           },
           {
+            id: 'update-complement',
+            update: 'number',
+            trigger: '7',
+          },
+          {
             id: 'end-message',
-            message: 'Thanks! Your data was submitted successfully!',
+            message: 'Obrigado! Seus dados foram enviados com sucesso!🎉',
             end: true,
           },
         ]}
 
         handleEnd={({renderedSteps, steps, values }) => {
+          console.log({ renderedSteps });
           const fields = renderedSteps.filter(step => step.value !== undefined).map(step => ({ [step.id]: step.value }))
           setFields(Object.assign(...fields))
         }}
-      />
-
+        />
+      </>
     );
 }
 
 export default SimpleForm;
 
 
+const allDDDs = [
+  // Centro-Oeste
+  '61',
+  '62', '64',
+  '65', '66',
+  '67',
+
+// Nordeste
+  '82',
+   '71', '73', '74', '75', '77',
+  '85', '88',
+  '98', '99',
+  '83',
+  '81','87',
+  '86', '89',
+  '84',
+  '79',
+
+// Norte
+'68',
+'96',
+'92', '97',
+'91', '93', '94',
+'69',
+'95',
+'63',
+
+// Sudeste
+'27', '28',
+'31', '32', '33', '34', '35', '37', '38',
+'21', '22', '24',
+'11', '12', '13', '14', '15', '16', '17', '18', '19',
+
+// Sul
+'41', '42', '43', '44', '45', '46',
+'51', '53', '54', '55',
+'47', '48', '49',
+];
 
 
 
+const allStates = [
+'AC',
+'AL',
+'AP',
+'AM',
+'BA',
+'CE',
+'DF',
+'ES',
+'GO',
+'MA',
+'MT',
+'MS',
+'MG',
+'PA',
+'PB',
+'PR',
+'PE',
+'PI',
+'RJ',
+'RN',
+'RS',
+'RO',
+'RR',
+'SC',
+'SP',
+'SE',
+'TO',
+]

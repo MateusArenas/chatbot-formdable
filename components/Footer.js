@@ -7,7 +7,7 @@ const Footer = (props) => {
       style={[
         {
           borderTopWidth: 1,
-          borderColor: props.disabled && !props?.invalid ? '#ddd' : props?.invalid ? '#E53935' : props?.color,
+          borderColor: props.disabled && !props?.invalid ? 'transparent' : props?.invalid ? '#E53935' : props?.color,
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
