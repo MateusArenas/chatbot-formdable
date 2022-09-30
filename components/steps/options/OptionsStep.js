@@ -1,34 +1,29 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import _ from 'lodash';
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
+
 import Option from './Option';
 import OptionElement from './OptionElement';
-import OptionText from './OptionText';
 import Options from './Options';
+import OptionText from './OptionText';
 
-class OptionsStep extends Component {
+const OptionsStep = props => {
   /* istanbul ignore next */
-  constructor(props) {
-    super(props);
 
-    this.renderOption = this.renderOption.bind(this);
-    this.onOptionClick = this.onOptionClick.bind(this);
+  const onOptionClick = ({ value }) => {
+    props.triggerNextStep({ value });
   }
 
-  onOptionClick({ value }) {
-    this.props.triggerNextStep({ value });
-  }
-
-  renderOption(option) {
-    const { optionStyle, optionElementStyle } = this.props;
-    const { optionBubbleColor, optionFontColor, bubbleColor, fontColor } = this.props.step;
+  const renderOption = (option) => {
+    const { optionStyle, optionElementStyle } = props;
+    const { optionBubbleColor, optionFontColor, bubbleColor, fontColor } = props.step;
     const { value, label } = option;
     return (
       <Option
         key={value}
         className="rsc-os-option"
         style={optionStyle}
-        onPress={() => this.onOptionClick({ value })}
+        onPress={() => onOptionClick({ value })}
       >
         <OptionElement
           className="rsc-os-option-element"
@@ -46,15 +41,13 @@ class OptionsStep extends Component {
     );
   }
 
-  render() {
-    const { options } = this.props.step;
+  const { options } = props.step;
 
-    return (
-      <Options className="rsc-os">
-        {_.map(options, this.renderOption)}
-      </Options>
-    );
-  }
+  return (
+    <Options className="rsc-os">
+      {_.map(options, renderOption)}
+    </Options>
+  );
 }
 
 OptionsStep.propTypes = {

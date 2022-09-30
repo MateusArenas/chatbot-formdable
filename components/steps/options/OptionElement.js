@@ -6,11 +6,11 @@ const OptionElement = (props) => {
     <View {...props} 
       style={[
         {
-          backgroundColor: props.bubbleColor,
+          backgroundColor:'#f7f6f6' || props.bubbleColor, opacity: .8,
           paddingTop: 12,
-          paddingRight: 12,
+          paddingRight: 16,
           paddingBottom: 12,
-          paddingLeft: 12,
+          paddingLeft: 16,
           borderRadius: 22,
         },
         props?.style

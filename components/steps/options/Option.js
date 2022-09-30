@@ -6,10 +6,10 @@ const Option = (props) => {
     <TouchableOpacity {...props} 
       style={[
         {
-          marginTop: 2,
-          marginRight: 2,
-          marginBottom: 2,
-          marginLeft: 2,
+          marginTop: 4,
+          marginRight: 4,
+          marginBottom: 4,
+          marginLeft: 4,
         },
         props?.style
       ]}

@@ -1,44 +1,36 @@
-import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import React, { Component } from 'react';
+
+import Loading from '../common/Loading';
 import Bubble from './Bubble';
 import Img from './Image';
 import ImageContainer from './ImageContainer';
-import Loading from '../common/Loading';
-import TextStepContainer from './TextStepContainer';
 import TextMessage from './TextMessage';
+import TextStepContainer from './TextStepContainer';
 
-class TextStep extends Component {
+const TextStep = props => {
   /* istanbul ignore next */
-  constructor(props) {
-    super(props);
+  const [loading, setLoading] = React.useState(true);
 
-    this.state = {
-      loading: true,
-    };
-
-    this.renderMessage = this.renderMessage.bind(this);
-  }
-
-  componentDidMount() {
-    const { step } = this.props;
+  React.useEffect(() => {
+    const { step } = props;
     const { component, delay, waitAction } = step;
     const isComponentWatingUser = component && waitAction;
     setTimeout(() => {
-      // this.props.triggerNextStep();
-      this.setState({ loading: false });
+      setLoading(false);
       if (!isComponentWatingUser) {
-        this.props.triggerNextStep();
+        props.triggerNextStep();
       }
     }, delay);
-  }
+  }, [])
 
-  renderMessage() {
-    const { previousValue, step } = this.props;
+  const renderMessage = () => {
+    const { previousValue, step } = props;
     const { component } = step;
     let { message } = step;
 
     if (component) {
-      const { steps, previousStep, triggerNextStep } = this.props;
+      const { steps, previousStep, triggerNextStep } = props;
       return React.cloneElement(component, {
         step,
         steps,
@@ -52,7 +44,6 @@ class TextStep extends Component {
     return message;
   }
 
-  render() {
     const {
       step,
       isFirst,
@@ -63,7 +54,7 @@ class TextStep extends Component {
       userBubbleStyle,
       hideBotAvatar,
       hideUserAvatar,
-    } = this.props;
+    } = props;
     const {
       avatar,
       bubbleColor,
@@ -105,20 +96,19 @@ class TextStep extends Component {
           isFirst={isFirst}
           isLast={isLast}
         >
-          { this.state.loading && <Loading color={fontColor} /> }
+          { loading && <Loading color={fontColor} /> }
           {
-            !this.state.loading &&
+            !loading &&
             <TextMessage
               className="rsc-ts-text"
               fontColor={fontColor}
             >
-              {this.renderMessage()}
+              {renderMessage()}
             </TextMessage>
           }
         </Bubble>
       </TextStepContainer>
     );
-  }
 }
 
 TextStep.propTypes = {

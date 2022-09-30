@@ -6,8 +6,8 @@ const Options = (props) => {
     <View {...props} 
       style={[
         {
-          paddingRight: 6,
-          paddingLeft: 6,
+          paddingRight: 4,
+          paddingLeft: 4,
           marginBottom: 12,
           display: 'flex',
           flexDirection: 'row',

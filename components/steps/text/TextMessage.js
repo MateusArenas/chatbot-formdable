@@ -8,7 +8,7 @@ const TextMessage = (props) => {
         {
           color: props.fontColor,
           fontSize: 16,
-          fontWeight: '400',
+          fontWeight: '500',
         },
         props?.style
       ]}

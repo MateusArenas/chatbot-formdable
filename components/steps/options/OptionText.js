@@ -8,6 +8,8 @@ const OptionElement = (props) => {
         {
           color: props.fontColor,
           fontSize: 14,
+          fontWeight: '500', 
+          opacity: .8
         },
         props?.style
       ]}

@@ -1,7 +1,7 @@
 import { Dimensions } from 'react-native';
 
 const { width } = Dimensions.get('window');
-const _maxWidth = width * 0.7;
+const _maxWidth = width * 0.8;
 
 import React from 'react';
 import { View } from 'react-native';
@@ -94,13 +94,12 @@ const Bubble = (props) => {
     <View {...props} 
       style={[
         {
-          backgroundColor: props.bubbleColor,
           borderTopLeftRadius,
           borderTopRightRadius,
           borderBottomRightRadius,
           borderBottomLeftRadius,
-          paddingTop: 16,
-          paddingBottom: 16,
+          paddingTop: 18,
+          paddingBottom: 18,
           paddingLeft: 16,
           paddingRight: 16,
           marginTop,
@@ -110,7 +109,8 @@ const Bubble = (props) => {
           maxWidth,
           minHeight: 42
         },
-        props?.style
+        props?.style,
+        props.bubbleColor && {backgroundColor: props.bubbleColor},
       ]}
     />
   );
