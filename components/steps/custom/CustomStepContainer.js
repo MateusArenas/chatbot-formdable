@@ -19,6 +19,14 @@ const ChatStepContainer = (props) => {
           paddingRight: 16,
           paddingBottom: 18,
           paddingLeft: 16,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 1,
+          },
+          shadowOpacity: 0.10,
+          shadowRadius: 4.41,
+          elevation: 2,
         },
         props?.style
       ]}

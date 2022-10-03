@@ -11,8 +11,8 @@ import { Animated, Easing } from 'react-native';
 const OptionsStep = props => {
   /* istanbul ignore next */
 
-  const onOptionClick = ({ value }) => {
-    props.triggerNextStep({ value });
+  const onOptionClick = ({ value, trigger, key }) => {
+    props.triggerNextStep({ value, trigger, key });
   }
 
   const { options } = props.step;
@@ -41,7 +41,7 @@ export default  React.memo(OptionsStep);
 const RenderOption = React.memo(({ option, onOptionClick, ...props }) => {
   const { optionStyle, optionElementStyle } = props;
   const { optionBubbleColor, optionFontColor, bubbleColor, fontColor } = props.step;
-  const { value, label } = option;
+  const { value, label, trigger, key } = option;
 
   const pushAnim = React.useRef(new Animated.Value(-180)).current
   const [contentSizeY, setContentSizeY] = React.useState(0);
@@ -67,7 +67,7 @@ const RenderOption = React.memo(({ option, onOptionClick, ...props }) => {
         !contentSizeY && setContentSizeY(e.nativeEvent.layout.height)
       }} 
       className="rsc-os-option"
-      onPress={() => onOptionClick({ value })}
+      onPress={() => onOptionClick({ value, trigger, key })}
     >
       <OptionElement
         className="rsc-os-option-element"

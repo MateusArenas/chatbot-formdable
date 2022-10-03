@@ -6,11 +6,14 @@ import { validate } from 'react-email-validator';
 import { Alert, Button, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { NativeModules, Platform, StatusBar } from 'react-native';
 import * as FeatherIcon from 'react-native-feather';
-import ConfirmGoogleCaptcha from 'react-native-google-recaptcha-v2';
 import WebView from 'react-native-webview';
+// import api from '../service/api';
+
+const STORAGE_CHATBOT_KEY = "RCA_CHATBOT-1.2.8";
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 import ChatBot from '../components';
-import Gradient from '../components/Gradient'
+import Gradient from '../components/Gradient';
 
 const { StatusBarManager } = NativeModules;
 
@@ -29,37 +32,33 @@ const Review = (props) => {
       <Text style={{ color: 'white', opacity: .9, fontSize: 16 }}>{text.substring(0, text.length - 2)}</Text>
     </>
   )
-  
-  return (
-    <View style={{ flex: 1 }}>
-      {props.fields?.map(field => (
-        <View key={field.value}
-          style={{  flex: 1 }}
-        >
-          <Text style={{ color: 'white', opacity: .6, fontSize: 18 }}>{field?.label + "\n gne"}: </Text>
-          <Text style={{ color: 'white', fontSize: 16, marginBottom: 8 }}>{state?.[field?.value]?.value}</Text>
-        </View>
-      ))}
-    </View>
-  );
 }
 
 const SimpleForm = () => {
     // const height = useHeaderHeight();
-    const [fields, setFields] = React.useState({})
-    const [recaptcha, setRecaptcha] = React.useState(false)
-
-    const captchaFormRef = React.useRef(null);
 
     async function onSubmitFormData (obj) {
+      console.log({ obj });
       const bodyFormData = new FormData();
-      Object.keys(obj).forEach(key => bodyFormData.append(key, obj[key]))
-      const { data } = await axios({
-        method: 'post',
-        url: 'http://10.0.2.2/credconsultas_api/request/cadastro-test.php',
-        data: bodyFormData,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      //transform obj in formdata and check if false value for filter.
+      Object.keys(obj).forEach(key => obj[key] && bodyFormData.append(key, obj[key]))
+      try {
+        const { data } = await axios({
+          method: 'post',
+          url: 'http://10.0.2.2/credconsultas_api/cadastro',
+          data: bodyFormData,
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            'token': '26d7c43e-504f-4bab-8177-8392fd4839ee'
+          },
+        });
+        // const { data } = await api.post('/cadastro', bodyFormData, { 
+        //   headers: { "Content-Type": "multipart/form-data" }
+        // })
+        console.log({ res: data });
+      } catch (err) {
+        console.log({ err });
+      }
     }
 
     const LoadingAwait = React.useCallback(props => {
@@ -80,8 +79,6 @@ const SimpleForm = () => {
             });
             setMessage(`Dados relativos ao cep carregados. ✅`)
           } else {
-            
-
             props.triggerNextStep({ trigger: 'cep-failure', value: false });
             setMessage(`Falha ao carregar campos. 🚫`)
           }
@@ -95,37 +92,154 @@ const SimpleForm = () => {
       )
     }, [])
 
+    const theme = {
+      light: {
+        gradientColors: ['white', '#ece9e4', '#ece9e4'],
+        gradientOpacitys: [1, .8, .8],
+        userFontColor: "#2c2a2a", userBubbleColor: "#f6f6f6",
+        optionFontColor: "#2c2a2a", optionBubbleColor: "#fafafa",
+        botFontColor: "#fafafa", botBubbleColor: "#272527",
+        sendIconColor: "#2c2a2a",
+        footerBackgroundColor: '#f6f6f6',
+        inputTextColor: '#2c2a2a',
+        inputBackgroundColor: '#ffffff',
+        inputPlaceholderTextColor: '#625e5e'
+      },
+      // dark: {
+      //   gradientColors: ['black', '#161316', '#161316'],
+      //   gradientOpacitys: [1, .975, 1],
+      //   userFontColor: "black", userBubbleColor: "#ebeff5",
+      //   optionFontColor: "black", optionBubbleColor: "#fafafa",
+      //   botFontColor: "#fafafa", botBubbleColor: "#272527",
+      //   sendIconColor: "#ebeff5",
+      //   footerBackgroundColor: '#242124',
+      //   inputTextColor: '#fafafa',
+      //   inputPlaceholderTextColor: '#ffffff6e'
+      // }
+    };
 
+
+    // const [defaultState, setDefaultState] = React.useState({
+    //   renderedSteps: [],
+    //   previousSteps: [],
+    //   currentStep: {},
+    //   previousStep: {},
+    //   steps: {},
+    //   editable: false,
+    //   inputValue: '',
+    //   inputInvalid: false,
+    //   defaultUserSettings: {},
+    // })
+
+    // React.useEffect(() => {
+    //   get('test-01').then(json => {
+    //     const data = JSON.parse(json)
+    //     setDefaultState(data);
+    //   })
+    // }, [])
+
+    const LoadingLastSession = React.useCallback(props => {
+      React.useEffect(() => {
+        AsyncStorage.getItem(STORAGE_CHATBOT_KEY).then(storageValue => {
+          if (storageValue) {
+            let defaultData = JSON.parse(storageValue);
+
+            console.log({ defaultData });
+
+            console.log({
+              overwrite: defaultData.overwrite,
+              trigger: defaultData.lastTrigger
+            });
+
+            props.triggerNextStep({ 
+              value: true,
+              defaultTrigger: '7',
+              overwrite: {
+                ...defaultData.overwrite,
+                ['lastTrigger']: defaultData.lastTrigger
+              },
+              // trigger: defaultData.lastTrigger
+              trigger: 'reload-last-session-message'
+            });
+          } else {
+            props.triggerNextStep({ value: false, trigger: 'initialize' });
+          }
+        });
+      }, [])
+
+      return null;
+    }, [])
+
+    async function handleStep (step, data) {
+      if (step?.value || data?.overwrite) {
+        const storageValue = await AsyncStorage.getItem(STORAGE_CHATBOT_KEY);
+
+          let defaultData = {};
+          if (storageValue) {
+            defaultData = JSON.parse(storageValue);
+          } 
+
+          const stepOverwrite = data?.overwrite || {};
+
+          await AsyncStorage.setItem(STORAGE_CHATBOT_KEY, JSON.stringify({
+            lastTrigger: step?.trigger,
+            overwrite: { 
+              ...defaultData?.overwrite,
+              ...stepOverwrite,  
+              [step?.id]: step?.value,
+            }
+          }))
+      }
+    }
+
+    
     return (
       <>
       <StatusBar barStyle="light-content"  backgroundColor="black" />
       <View style={{ flex: 1, backgroundColor: 'white' }}>
-      <Gradient colors={['black', '#161316', '#161316']} opacitys={[1, .975, 1]} >
-          <ChatBot style={{ backgroundColor: 'transparent', flex: 1 }} botDelay={400} hideBotAvatar hideHeader hideUserAvatar 
-          userFontColor={"black"} userBubbleColor={"#ebeff5"}
-          optionFontColor={"black"} optionBubbleColor={"#fafafa"}
-          botFontColor={"#fafafa"} botBubbleColor={"#272527"} bubbleStyle={{ padding: 10, opacity: .7 }}
+      <Gradient colors={theme['light'].gradientColors} opacitys={theme['light'].gradientOpacitys} >
+          <ChatBot style={{ backgroundColor: 'transparent', flex: 1 }} 
+          // defaultState={defaultState}
+          // storageKey={'test-01'}
+          botDelay={400} 
+          inputAttributes={{
+            placeholderTextColor: theme['light'].inputPlaceholderTextColor,
+            keyboardAppearance: 'light'
+          }}
+          hideBotAvatar hideHeader hideUserAvatar 
+          userFontColor={theme['light'].userFontColor} 
+          userBubbleColor={theme['light'].userBubbleColor}
+          optionFontColor={theme['light'].optionFontColor} 
+          optionBubbleColor={theme['light'].optionBubbleColor}
+          botFontColor={theme['light'].botFontColor} 
+          botBubbleColor={theme['light'].botBubbleColor} 
+          bubbleStyle={{ padding: 10, opacity: .8 }}
           submitButtonTextComponent={props => (
-            <FeatherIcon.Send style={{ opacity: .8}} color="#ebeff5" width={24} height={24} />
+            <FeatherIcon.Send style={{ opacity: .8}} 
+              width={24} height={24} 
+              color={theme['light'].sendIconColor} 
+            />
           )}
           footerStyle={{ 
-            backgroundColor: '#242124', borderTop: 0, padding: 12, 
+            borderTop: 0, padding: 12, 
+            backgroundColor: theme['light'].footerBackgroundColor, 
           }}
           inputStyle={{ 
-            backgroundColor: 'rgba(0,0,0,.2)', 
+            backgroundColor: theme['light'].inputBackgroundColor, 
+            borderWidth: 1, borderColor: "rgba(0,0,0,.15)",
             borderRadius: 20, borderTopRightRadius: 0, borderBottomRightRadius: 0,
-            color: '#fafafa', fontSize: 16, flex: 1,
+            color: theme['light'].inputTextColor, fontSize: 16, flex: 1,
             paddingLeft: 18,
           }}
           submitButtonStyle={{ 
-            backgroundColor: 'rgba(0,0,0,.3)', fontSize: 16,  
-            borderRadius: 20, borderTopLeftRadius: 0, borderBottomLeftRadius: 0,
-            padding: 20, paddingLeft: 16
+            backgroundColor: 'rgba(0,0,0,.1)', fontSize: 16,  
+            borderRadius: 20, 
+            borderTopLeftRadius: 0, borderBottomLeftRadius: 0,
+            padding: 20, paddingLeft: 16,
+            margin: 10, marginLeft: 0
           }}
           submitButtonContent={"Enviar"}
           placeholder={"Digite aqui..."}
-
-          
           scrollViewProps={{ 
             contentContainerStyle: {
               paddingTop: 0 || STATUSBAR_HEIGHT,
@@ -135,9 +249,43 @@ const SimpleForm = () => {
           }}
           contentStyle={{ backgroundColor: 'transparent', borderBottom: 0, padding: 12 }}
           keyboardVerticalOffset={0}
+          handleStep={handleStep}
           steps={[
             {
-              id: '0',
+              id: 'reload-last-session',
+              waitAction: { 
+                text: [
+                  "Carregando sessão.   🕐",
+                  "Carregando sessão..  🕒",
+                  "Carregando sessão... 🕔",
+                  "Carregando sessão..  🕗",
+                  "Carregando sessão.   🕘",
+                  "Carregando sessão..  🕚",
+                  "Carregando sessão... 🕛",
+                ],
+                delay: 200
+              }, 
+              replace: true,
+              component: <LoadingLastSession />,
+              trigger: 'initialize',
+            },
+            {
+              id: 'reload-last-session-message',
+              message: "Deseja continuar com os dados anteriores ou iniciar uma nova consulta?",
+              trigger: 'reload-last-session-require'
+            },
+            {
+              id: 'reload-last-session-require',
+              inputAttributes: {
+                placeholder: "Escolha uma opção",
+              },
+              options: [
+                { key: "1", label: 'Continuar', trigger: ({ steps }) => steps['lastTrigger']?.value },
+                { key: "2", label: 'Refazer', trigger: 'initialize' },
+              ],
+            },
+            {
+              id: 'initialize',
               message: "Olá! 😄",
               trigger: 'wellcome'
             },
@@ -174,6 +322,7 @@ const SimpleForm = () => {
               options: [
                 { value: 'analize', label: 'Análise de Crédito', trigger: 'email-quest' },
                 { value: 'procedencia', label: 'Procedência Veicular', trigger: 'email-quest' },
+                { value: 'analize+procedencia', label: 'Análise de Crédito + Procedência Veicular', trigger: 'email-quest' },
               ],
             },
             {
@@ -246,8 +395,8 @@ const SimpleForm = () => {
                 placeholder: "Escolha uma opção",
               },
               options: [
-                { value: 'null-1', label: 'Sim', trigger: 'phone-quest' },
-                { value: 'null-2', label: 'Não', trigger: 'socialReason-quest' },
+                { key: "1", label: 'Sim', trigger: 'phone-quest' },
+                { key: "2", label: 'Não', trigger: 'socialReason-quest' },
               ],
             },
             {
@@ -373,22 +522,14 @@ const SimpleForm = () => {
               id: 'andress',
               waitAction: { 
                 text: [
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos.  '}</Text>
-                    <Text style={{ position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos.. '}</Text>
-                    <Text style={{ transform: [{ rotate: '45deg' }], position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos...'}</Text>
-                    <Text style={{ position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos.. '}</Text>
-                    <Text style={{ transform: [{ rotate: '-45deg' }], position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
+                  "Carregando campos.   🕐",
+                  "Carregando campos..  🕒",
+                  "Carregando campos... 🕔",
+                  "Carregando campos..  🕗",
+                  "Carregando campos.   🕘",
+                  "Carregando campos..  🕚",
+                  "Carregando campos... 🕛",
+                  // "Carregando campos.  🕐🕒🕔🕗🕘🕚🕛",
                 ],
                 delay: 200
               }, 
@@ -419,14 +560,20 @@ const SimpleForm = () => {
             },
             {
               id: 'complement-require-quest',
-              message: 'Há um complemento?',
+              message: ({ steps }) => {
+                const complement = steps?.['complement']?.value;
+                if (complement) {
+                  return `Deseja sobrescrever o complemento "${complement}"?`;
+                }
+                return 'Há um complemento?'
+              },
               trigger: 'complement-require',
             },
             {
               id: 'complement-require',
               options: [
-                { value: 'null-1', label: 'Sim', trigger: 'complement-quest' },
-                { value: 'null-2', label: 'Não', trigger: '7' },
+                { key: '1', label: 'Sim', trigger: 'complement-quest' },
+                { key: '2', label: 'Não', trigger: '7' },
               ],
             },
             {
@@ -469,14 +616,14 @@ const SimpleForm = () => {
             },
             {
               id: 'update-init',
-              message: 'Deseja atualizar algum campo? 🆙',
+              message: 'Deseja atualizar algum campo ou continuar? 🆙',
               trigger: 'update-init-question',
             },
             {
               id: 'update-init-question',
               options: [
-                { value: 'null-1', label: 'Sim', trigger: 'update-init-yes' },
-                { value: 'null-2', label: 'Não', trigger: 'review' },
+                { key: '1', label: 'Atualizar', trigger: 'update-init-yes' },
+                { key: '2', label: 'Continuar', trigger: 'review' },
               ],
             },
             {
@@ -488,14 +635,14 @@ const SimpleForm = () => {
             {
               id: 'update-init-fields',
               options: [
-                { value: 'null-1', label: 'Nome*', trigger: 'update-name' },
-                { value: 'null-2', label: 'Email*', trigger: 'update-email' },
-                { value: 'null-3', label: 'Nome Fantasia*', trigger: 'update-fantasyName' },
-                { value: 'null-4', label: 'Razão Social*', trigger: 'update-socialReason' },
-                { value: 'null-5', label: 'Tipo de Produto*', trigger: 'update-product' },
-                { value: 'null-6', label: 'CNPJ*', trigger: 'update-cnpj' },
-                { value: 'null-7', label: 'Telefone*', trigger: 'update-cell' },
-                { value: 'null-8', label: 'Telefone (2)', trigger: 'update-phone' },
+                { key: '1', label: 'Nome*', trigger: 'update-name' },
+                { key: '2', label: 'Email*', trigger: 'update-email' },
+                { key: '3', label: 'Nome Fantasia*', trigger: 'update-fantasyName' },
+                { key: '4', label: 'Razão Social*', trigger: 'update-socialReason' },
+                { key: '5', label: 'Tipo de Produto*', trigger: 'update-product' },
+                { key: '6', label: 'CNPJ*', trigger: 'update-cnpj' },
+                { key: '7', label: 'Telefone*', trigger: 'update-cell' },
+                { key: '8', label: 'Telefone (2)', trigger: 'update-phone' },
               ],
             },
             {
@@ -593,14 +740,14 @@ const SimpleForm = () => {
             },
             {
               id: 'update',
-              message: 'Deseja atualizar algum campo? 🆙',
+              message: 'Deseja atualizar algum campo ou continuar? 🆙',
               trigger: 'update-question',
             },
             {
               id: 'update-question',
               options: [
-                { value: 'null-1', label: 'Sim', trigger: 'update-yes' },
-                { value: 'null-2', label: 'Não', trigger: 'end-message' },
+                { key: '1', label: 'Atualizar', trigger: 'update-yes' },
+                { key: '2', label: 'Continuar', trigger: 'end-message' },
               ],
             },
             {
@@ -612,20 +759,19 @@ const SimpleForm = () => {
             {
               id: 'update-fields',
               options: [
-                { value: 'null-1', label: "CEP*", trigger: "update-cep" }, 
-                { value: 'null-2', label: 'Estado*', trigger: 'update-state' },
-                { value: 'null-3', label: 'Cidade*', trigger: 'update-city' },
-                { value: 'null-4', label: 'Bairro*', trigger: 'update-district' },
-                { value: 'null-5', label: 'Logradouro*', trigger: 'update-street' },
-                { value: 'null-6', label: 'Número*', trigger: 'update-number' },
-                { value: 'null-7', label: "Complemento", trigger: "update-complement" }, 
+                { key: '1', label: "CEP*", trigger: "update-cep" }, 
+                { key: '2', label: 'Estado*', trigger: 'update-state' },
+                { key: '3', label: 'Cidade*', trigger: 'update-city' },
+                { key: '4', label: 'Bairro*', trigger: 'update-district' },
+                { key: '5', label: 'Logradouro*', trigger: 'update-street' },
+                { key: '6', label: 'Número*', trigger: 'update-number' },
+                { key: '7', label: "Complemento", trigger: "update-complement" }, 
               ],
             },
             {
               id: 'update-cep',
               update: 'cep',
               trigger: ({ steps, ...props }) => {
-                console.log({ steps, ...props });
                 const askwantchange = ['state', 'city', 'district', 'street'].reduce((acc, key) => (acc&&steps[key]?.value), true);
                 return !askwantchange ? 'andress' : 'andress-update-fields-quest'
               },
@@ -638,30 +784,22 @@ const SimpleForm = () => {
             {
               id: 'andress-update-fields-require',
               options: [
-                { value: 'null-1', label: 'Sim', trigger: 'andress-reload' },
-                { value: 'null-2', label: 'Não', trigger: '7' },
+                { key: '1', label: 'Sim', trigger: 'andress-reload' },
+                { key: '2', label: 'Não', trigger: '7' },
               ],
             },
             {
               id: 'andress-reload',
               waitAction: { 
                 text: [
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos.  '}</Text>
-                    <Text style={{ position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos.. '}</Text>
-                    <Text style={{ transform: [{ rotate: '45deg' }], position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos...'}</Text>
-                    <Text style={{ position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
-                  <View style={{ flexDirection: 'row', paddingRight: 20 }}>
-                    <Text style={{ fontSize: 16, fontWeight: '500', color: 'black' }}>{'Carregando campos.. '}</Text>
-                    <Text style={{ transform: [{ rotate: '-45deg' }], position: 'absolute', right: 0, fontSize: 16, fontWeight: '500', color: 'black' }}>⏳</Text>
-                  </View>,
+                  "Carregando campos.   🕐",
+                  "Carregando campos..  🕒",
+                  "Carregando campos... 🕔",
+                  "Carregando campos..  🕗",
+                  "Carregando campos.   🕘",
+                  "Carregando campos..  🕚",
+                  "Carregando campos... 🕛",
+                  // "Carregando campos.  🕐🕒🕔🕗🕘🕚🕛",
                 ],
                 delay: 200
               }, 
@@ -710,20 +848,36 @@ const SimpleForm = () => {
               trigger: 'captcha',
             },
             {
+              id: 'captcha-failure',
+              message: 'Porfavor resolva o CAPTCHA para avançar.',
+              trigger: 'end-message',
+            },
+            {
               id: 'captcha',
-              waitAction: true,
-              // component: <ReCAPTCHALoadingAwait 
-              //   onPress={() => captchaFormRef.current.show()}
-              //   children={<Text style={{ textAlign: 'center', color: '#3266FF', textDecorationLine: 'underline', fontWeight: '500', fontSize: 16 }}>{'Não sou um robô'}</Text>}
-              //   style={{ flex: 1 }}
-              //   textColor='#fff'
-              // />,
+              waitAction: { 
+                text: [
+                  "Carregando captcha.   🕐",
+                  "Carregando captcha..  🕒",
+                  "Carregando captcha... 🕔",
+                  "Carregando captcha..  🕗",
+                  "Carregando captcha.   🕘",
+                  "Carregando captcha..  🕚",
+                  "Carregando captcha... 🕛",
+                  // "Carregando captcha.  🕐🕒🕔🕗🕘🕚🕛",
+                ],
+                delay: 200
+              }, 
               component: <CaptchaComponent />,
               trigger: 'completed-message',
             },
             {
               id: 'completed-message',
               message: 'Obrigado! Seus dados foram enviados com sucesso! 🎉',
+              trigger: 'completed-wait-contact',
+            },
+            {
+              id: 'completed-wait-contact',
+              message: 'Aguarde o nosso contato. ☎️',
               end: true,
             }
           ]}
@@ -732,8 +886,7 @@ const SimpleForm = () => {
             const fieldsWithValues = renderedSteps
             .filter(item => item.value !== undefined)
             .filter(item => item.value?.split?.('-')?.[0] !== "null");
-            const fields = Object.assign(...fieldsWithValues.map(step => ({ [step.id]: step.value })));
-            setFields(fields);
+            const fields = Object.assign(...fieldsWithValues.map(step => ({ [step.id]: step.value })));     
             onSubmitFormData({
               "captcha": fields['captcha'],
               "fantasia": fields['fantasyName'],
@@ -747,8 +900,8 @@ const SimpleForm = () => {
               "bairro": fields['district'],
               "cidade": fields['city'],
               "estado": fields['state'],
-              "produto_credito": fields['product'] === "analize",
-              "produto_veicular": fields['product'] === "procedencia",
+              "produto_credito": fields['product'] === 'analize' || fields['product'] === 'analize+procedencia',
+              "produto_veicular": fields['product'] === 'procedencia' || fields['product'] === 'analize+procedencia',
               "contato": fields['name'],
               "complemento": fields['complement'] || ""
             });
@@ -844,20 +997,19 @@ const CaptchaComponent = props => {
   const onMessage = event => {
       setCaptchaOpen(true);
 
+
       if (event && event.nativeEvent.data) {
         if (['cancel', 'error', 'expired',].includes(event.nativeEvent.data)) {
-            // captchaFormRef?.current?.hide?.();
             setCaptchaOpen(false);
             setHidden(true);
+            props.triggerNextStep({ value: false, trigger: 'captcha-failure' });
             return;
         } else {
           console.log('Verified code from Google', event.nativeEvent.data);
           setCaptchaOpen(false);
           setTimeout(() => {
               setHidden(true);
-              props.triggerNextStep({ value: true, trigger: 'completed-message' });
-                // captchaFormRef?.current?.hide?.();
-                // do what ever you want here
+              props.triggerNextStep({ value: event.nativeEvent.data, trigger: 'completed-message' });
             }, 1500);
         }
       }
@@ -874,14 +1026,14 @@ const CaptchaComponent = props => {
       <View style={{ flex: 1 }}>
         {!captchaOpen && <TouchableWithoutFeedback onPress={() => setCaptchaOpen(false)}>
           <View style={{ 
-            width: 120, height: 76, backgroundColor: 'transparent', 
+            width: '40%', height: '100%', backgroundColor: 'transparent', 
             position: 'absolute', zIndex: 2,
             right: 0, bottom: 0
           }} />
         </TouchableWithoutFeedback>}
         {captchaOpen && 
           <View style={{ 
-            width: '100%', height: 40, backgroundColor: '#f9f9f9', 
+            width: '100%', height: 60, backgroundColor: 'transparent', 
             position: 'absolute', zIndex: 2,
             bottom: 0
           }} />
@@ -905,19 +1057,24 @@ const CaptchaComponent = props => {
           }
           automaticallyAdjustContentInsets
           style={[
-            { backgroundColor: 'transparent', width: '100%', height: 76, transform: [{ scale: 1.05 }] },
-            captchaOpen && {  width: '100%', height: 292 *2 }
+            { backgroundColor: 'transparent', width: '100%', height: 78, transform: [{ scale: 1 }] },
+            captchaOpen && {  width: '100%', height: 264 *2 }
           ]}
           source={{
             html: `<!DOCTYPE html>
             <html>
             <head> 
-              <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=0.77">
               <meta http-equiv="X-UA-Compatible" content="ie=edge"> 
               <script src="https://recaptcha.google.com/recaptcha/api.js?explicit&hl=${'pt-BR'}"></script> 
               <style>
                 html, body {
                   overflow: hidden !important;
+                  width: 100% !important;
+                  height: 100% !important;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
                 }
                 * {
                   padding: 0 !important;
@@ -925,17 +1082,12 @@ const CaptchaComponent = props => {
                   box-sizing: border-box;
                   border-width: 0 !important;
                 }
-                #rc-anchor-container {
-                  margin: 0 !important;
-                  border: 0 !important;
-                }
-                #captcha iframe {
-                  position: relative;
-                  box-shadow: none !important;
-                  border: 0px;
-                }  
-                .rc-anchor-pt {
-                  display: none !important;
+                #captcha {
+                  width: 100% !important;
+                  height: 100% !important;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
                 }
               </style>
               <script type="text/javascript"> 
@@ -952,7 +1104,7 @@ const CaptchaComponent = props => {
             </head>
             <body> 
               <div id="captcha">
-                <div style="text-align: center;">
+                <div>
                   <div class="g-recaptcha" style="display: inline-block; height: auto;" 
                     data-sitekey="${"6Lfzv0QiAAAAAGOMRt6AELvUwzcRQgj8H4DgkwiL"}" data-callback="onDataCallback"  
                     data-expired-callback="onDataExpiredCallback"  

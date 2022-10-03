@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import PropTypes from 'prop-types';
 import Random from 'random-id';
 import React, { Component } from 'react';
@@ -26,8 +25,18 @@ const ChatBot = props => {
     editable: false,
     inputValue: '',
     inputInvalid: false,
-    defaultUserSettings: {},
+    defaultUserSettings: {}
   });
+
+  // React.useEffect(() => {
+  //   setState(props?.defaultState);
+  // }, [props?.defaultState])
+
+  // React.useEffect(() => {
+  //   if (props?.storageKey) {
+  //     set(props?.storageKey, JSON.stringify(state))
+  //   }
+  // }, [props?.storageKey, state])
 
   React.useEffect(() => {
       const {
@@ -201,6 +210,8 @@ const ChatBot = props => {
     let { currentStep, previousStep } = state;
     const isEnd = currentStep?.end;
 
+    props?.handleStep?.(currentStep, data);
+
     if (data && data?.value) {
       currentStep.value = data?.value;
     }
@@ -213,7 +224,12 @@ const ChatBot = props => {
     if (isEnd) {
       handleEnd();
     } else if (currentStep?.options && data) {
-      const option = currentStep?.options.filter(o => o.value === data.value)[0];
+      const option = currentStep?.options
+      .filter(o => 
+        (data?.key&&o?.key) ? (o?.key === data?.key) : (o?.value === data?.value)
+      )[0];
+
+      // console.log({ option });
       const trigger = getTriggeredStep(option.trigger, currentStep?.value);
       delete currentStep?.options;
 
@@ -245,6 +261,10 @@ const ChatBot = props => {
 
       if (isReplace) {
         renderedSteps.pop();
+      }
+
+      if (currentStep?.hide) {
+        delete currentStep.hide;
       }
 
       const trigger = getTriggeredStep(currentStep?.trigger, currentStep?.value);
@@ -452,7 +472,7 @@ const ChatBot = props => {
     const textInputStyle = Object.assign({}, styles.input, inputStyle);
     const scrollViewStyle = Object.assign({}, styles.content, contentStyle);
     const platformBehavior = Platform.OS === 'ios' ? 'padding' : 'height';
-    const inputAttributesOverride = currentStep?.inputAttributes || inputAttributes;
+    const inputAttributesOverride = { ...inputAttributes, ...currentStep?.inputAttributes };
 
     React.useEffect(() => {
       if (editable) {
@@ -499,13 +519,13 @@ const ChatBot = props => {
             style={footerStyle}
             disabled={!editable}
             invalid={inputInvalid}
-            color={botBubbleColor}
+            // color={botBubbleColor}
+            color={'rgba(0,0,0,.1)'}
           >
-            <ChatbotTextInput keyboardAppearance='dark'
+            <ChatbotTextInput
               style={textInputStyle}
               className="rsc-input"
               placeholder={placeholder}
-              placeholderTextColor={'#ffffff6e'}
               ref={inputRef}
               onKeyPress={handleKeyPress}
               onChangeText={text => setState(state => ({ ...state, inputValue: text }))}
@@ -545,6 +565,7 @@ const ChatBot = props => {
 }
 
 ChatBot.propTypes = {
+  storageKey: PropTypes.string,
   avatarStyle: PropTypes.object,
   avatarWrapperStyle: PropTypes.object,
   botAvatar: PropTypes.string,
