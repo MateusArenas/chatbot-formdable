@@ -68,6 +68,7 @@ const SimpleForm = () => {
         axios.get(`https://viacep.com.br/ws/${props.steps['cep'].value}/json/`).then(({ data }) => {
           if (!data?.erro) {
             props.triggerNextStep({ 
+              value: true,
               defaultTrigger: '7',
               overwrite: { 
                 state: data.uf, 
@@ -79,7 +80,9 @@ const SimpleForm = () => {
             });
             setMessage(`Dados relativos ao cep carregados. ✅`)
           } else {
-            props.triggerNextStep({ trigger: 'cep-failure' });
+            
+
+            props.triggerNextStep({ trigger: 'cep-failure', value: false });
             setMessage(`Falha ao carregar campos. 🚫`)
           }
         })
@@ -320,7 +323,7 @@ const SimpleForm = () => {
 
             {
               id: 'cnpj-quest',
-              message: 'Informe o CNPJ',
+              message: 'Informe o CNPJ da empresa',
               trigger: 'cnpj',
             },
             {
@@ -341,7 +344,7 @@ const SimpleForm = () => {
 
             {
               id: 'cep-quest',
-              message: 'Informe o CEP',
+              message: 'Informe o CEP do endereço',
               trigger: 'cep',
             },
             {
@@ -478,7 +481,7 @@ const SimpleForm = () => {
             },
             {
               id: 'update-init-yes',
-              message: 'Qual campo você deseja atualizar?',
+              message: 'Qual campo deseja atualizar?',
               trigger: 'update-init-fields',
             },
             //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
@@ -581,7 +584,7 @@ const SimpleForm = () => {
                 { label: "Estado", value: "state" }, 
                 { label: "Cidade", value: "city" }, 
                 { label: "Bairro", value: "district" }, 
-                { label: "Rua", value: "street" }, 
+                { label: "Logradouro", value: "street" }, 
                 { label: "Número", value: "number" }, 
                 { label: "Complemento", value: "complement" }, 
               ]} />,
@@ -602,7 +605,7 @@ const SimpleForm = () => {
             },
             {
               id: 'update-yes',
-              message: 'Qual campo você deseja atualizar? 🆙',
+              message: 'Qual campo deseja atualizar? 🆙',
               trigger: 'update-fields',
             },
             //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
@@ -613,7 +616,7 @@ const SimpleForm = () => {
                 { value: 'null-2', label: 'Estado*', trigger: 'update-state' },
                 { value: 'null-3', label: 'Cidade*', trigger: 'update-city' },
                 { value: 'null-4', label: 'Bairro*', trigger: 'update-district' },
-                { value: 'null-5', label: 'Rua*', trigger: 'update-street' },
+                { value: 'null-5', label: 'Logradouro*', trigger: 'update-street' },
                 { value: 'null-6', label: 'Número*', trigger: 'update-number' },
                 { value: 'null-7', label: "Complemento", trigger: "update-complement" }, 
               ],
@@ -621,7 +624,11 @@ const SimpleForm = () => {
             {
               id: 'update-cep',
               update: 'cep',
-              trigger: ({ previousValue }) => !previousValue ? 'andress-reload' : 'andress-update-fields-quest',
+              trigger: ({ steps, ...props }) => {
+                console.log({ steps, ...props });
+                const askwantchange = ['state', 'city', 'district', 'street'].reduce((acc, key) => (acc&&steps[key]?.value), true);
+                return !askwantchange ? 'andress' : 'andress-update-fields-quest'
+              },
             },
             {
               id: 'andress-update-fields-quest',
@@ -694,7 +701,7 @@ const SimpleForm = () => {
             },
             {
               id: 'update-complement',
-              update: 'number',
+              update: 'complement',
               trigger: '7',
             },
             {
