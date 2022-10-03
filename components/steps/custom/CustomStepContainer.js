@@ -1,22 +1,23 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Animated } from 'react-native';
 
 const ChatStepContainer = (props) => {
   
   return (
-    <View {...props} 
+    <Animated.View {...props} 
       style={[
         {
-          backgroundColor: '#fff',
+          backgroundColor: '#f9f9f9',
           borderRadius: 5,
           borderWidth: 1,
-          borderColor: '#ddd',
+          borderColor: '#f9f9f9',
           marginRight: 6,
-          marginBottom: 10,
+          marginBottom: 24,
+          marginTop: 14,
           marginLeft: 6,
-          paddingTop: 16,
+          paddingTop: 18,
           paddingRight: 16,
-          paddingBottom: 16,
+          paddingBottom: 18,
           paddingLeft: 16,
         },
         props?.style
@@ -25,4 +26,4 @@ const ChatStepContainer = (props) => {
   );
 }
 
-export default ChatStepContainer;
+export default React.memo(ChatStepContainer);

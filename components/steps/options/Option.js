@@ -1,9 +1,11 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Animated } from 'react-native';
+
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 
 const Option = (props) => {
   return (
-    <TouchableOpacity {...props} 
+    <AnimatedTouchable {...props} 
       style={[
         {
           marginTop: 4,

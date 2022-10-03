@@ -7,9 +7,9 @@ const OptionElement = (props) => {
       style={[
         {
           backgroundColor:'#f7f6f6' || props.bubbleColor, opacity: .8,
-          paddingTop: 12,
+          paddingTop: 14,
           paddingRight: 16,
-          paddingBottom: 12,
+          paddingBottom: 14,
           paddingLeft: 16,
           borderRadius: 22,
         },

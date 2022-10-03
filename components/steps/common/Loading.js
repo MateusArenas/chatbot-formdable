@@ -22,7 +22,7 @@ const Loading = (props) => {
         size={3}
         color={color}
       /> */}
-      <Text style={{ color, fontWeight: 'bold' }}>...</Text>
+      <Text style={{ color, fontWeight: 'bold' }}>{props.children || '...'}</Text>
     </View>
   );
 };

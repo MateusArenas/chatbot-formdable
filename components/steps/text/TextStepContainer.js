@@ -1,9 +1,9 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View, Animated } from 'react-native';
 
 const TextStepContainer = (props) => {
   return (
-    <View {...props} 
+    <Animated.View {...props} 
       style={[
         {
           display: 'flex',

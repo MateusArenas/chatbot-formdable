@@ -8,6 +8,8 @@ import ImageContainer from './ImageContainer';
 import TextMessage from './TextMessage';
 import TextStepContainer from './TextStepContainer';
 
+import { Animated, Easing } from 'react-native'; 
+
 const TextStep = props => {
   /* istanbul ignore next */
   const [loading, setLoading] = React.useState(true);
@@ -23,26 +25,6 @@ const TextStep = props => {
       }
     }, delay);
   }, [])
-
-  const renderMessage = () => {
-    const { previousValue, step } = props;
-    const { component } = step;
-    let { message } = step;
-
-    if (component) {
-      const { steps, previousStep, triggerNextStep } = props;
-      return React.cloneElement(component, {
-        step,
-        steps,
-        previousStep,
-        triggerNextStep,
-      });
-    }
-
-    message = message?.replace?.(/{previousValue}/g, previousValue) || "";
-
-    return message;
-  }
 
     const {
       step,
@@ -64,8 +46,29 @@ const TextStep = props => {
 
     const showAvatar = user ? !hideUserAvatar : !hideBotAvatar;
 
+    const pushAnim = React.useRef(new Animated.Value(-180)).current
+    const [contentSizeY, setContentSizeY] = React.useState(0);
+
+    React.useEffect(() => {
+      if (contentSizeY && loading) {
+        pushAnim.setValue(-(contentSizeY*2));
+        Animated.timing(
+          pushAnim,
+          {
+            toValue: 0,
+            duration: step.delay/2,
+            useNativeDriver: false,
+            easing: Easing.quad 
+          }
+        ).start();
+      }
+    }, [pushAnim, contentSizeY, loading])
+
     return (
-      <TextStepContainer
+      <TextStepContainer style={{ bottom: pushAnim }}
+        onLayout={e => {
+          !contentSizeY && setContentSizeY(e.nativeEvent.layout.height)
+        }} 
         className="rsc-ts"
         user={user}
       >
@@ -96,16 +99,12 @@ const TextStep = props => {
           isFirst={isFirst}
           isLast={isLast}
         >
-          { loading && <Loading color={fontColor} /> }
-          {
-            !loading &&
             <TextMessage
               className="rsc-ts-text"
               fontColor={fontColor}
             >
-              {renderMessage()}
+              <RenderMessage {...props} />
             </TextMessage>
-          }
         </Bubble>
       </TextStepContainer>
     );
@@ -134,4 +133,25 @@ TextStep.defaultProps = {
   avatarWrapperStyle: {}
 };
 
-export default TextStep;
+export default  React.memo(TextStep);
+
+
+const RenderMessage = React.memo(props => {
+  const { previousValue, step } = props;
+  const { component } = step;
+  let { message } = step;
+
+  if (component) {
+    const { steps, previousStep, triggerNextStep } = props;
+    return React.cloneElement(component, {
+      step,
+      steps,
+      previousStep,
+      triggerNextStep,
+    });
+  }
+
+  message = message?.replace?.(/{previousValue}/g, previousValue) || "";
+
+  return message;
+})

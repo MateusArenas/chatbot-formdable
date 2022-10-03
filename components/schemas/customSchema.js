@@ -21,7 +21,7 @@ export default [
   },
   {
     key: 'waitAction',
-    types: ['boolean'],
+    types: ['any'],
     required: false,
   },
   {
