@@ -283,7 +283,7 @@ const ChatBot = props => {
         const overwriteSteps = previousSteps.map(renderedStep => 
           Object.keys(data?.overwrite).includes(renderedStep?.id) ? ({
             ...renderedStep,
-            value: data?.overwrite?.[renderedStep?.id] || renderedStep?.value
+            value: data?.overwrite?.[renderedStep?.id] 
           }) : renderedStep
         )
   
@@ -292,7 +292,7 @@ const ChatBot = props => {
             overwriteSteps.push({
               id: key,
               key: Random(24),
-              value: data?.overwrite?.[key] || overwriteSteps?.[key]?.value,
+              value: data?.overwrite?.[key],
               user: true,
               trigger: data?.defaultTrigger || '7',
               message: undefined
