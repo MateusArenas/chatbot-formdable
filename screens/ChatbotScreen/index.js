@@ -6,33 +6,19 @@ import { validate } from 'react-email-validator';
 import { Alert, Button, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { NativeModules, Platform, StatusBar } from 'react-native';
 import * as FeatherIcon from 'react-native-feather';
-import WebView from 'react-native-webview';
 // import api from '../service/api';
 
-const STORAGE_CHATBOT_KEY = "RCA_CHATBOT-1.2.8";
-import AsyncStorage from '@react-native-async-storage/async-storage'
-
-import ChatBot from '../components';
-import Gradient from '../components/Gradient';
+import ChatBot from '../../components';
+import Gradient from '../../components/Gradient';
 
 const { StatusBarManager } = NativeModules;
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
 
-const Review = (props) => {
-  const [state, setState] = React.useState({});
-  React.useEffect(() => { setState(props.steps) }, []);
-
-  const uninformed = "Não informado.";
-  const text = props.fields.reduce((fulltext, field) => fulltext+field?.label+": "+"\n"+(state?.[field?.value]?.value||uninformed)+"\n\n","");
-
-  return (
-    <>
-      <Text style={{ color: 'white', opacity: .9, fontSize: 16 }}>{props.title+'\n\n'}</Text>
-      <Text style={{ color: 'white', opacity: .9, fontSize: 16 }}>{text.substring(0, text.length - 2)}</Text>
-    </>
-  )
-}
+import DataReview from './DataReview';
+import LoadingAnddress from './LoadingAnddress'
+import LoadingLastSession, { setLastSession } from './LoadingLastSession'
+import CaptchaComponent from './CaptchaComponent'
 
 const SimpleForm = () => {
     // const height = useHeaderHeight();
@@ -61,37 +47,6 @@ const SimpleForm = () => {
       }
     }
 
-    const LoadingAwait = React.useCallback(props => {
-      const [message, setMessage] = React.useState('');
-      React.useEffect(() => {
-        axios.get(`https://viacep.com.br/ws/${props.steps['cep'].value}/json/`).then(({ data }) => {
-          if (!data?.erro) {
-            props.triggerNextStep({ 
-              value: true,
-              defaultTrigger: '7',
-              overwrite: { 
-                state: data.uf, 
-                city: data.localidade, 
-                district: data.bairro, 
-                street: data.logradouro,
-                complement: data.complemento,
-              },
-            });
-            setMessage(`Dados relativos ao cep carregados. ✅`)
-          } else {
-            props.triggerNextStep({ trigger: 'cep-failure', value: false });
-            setMessage(`Falha ao carregar campos. 🚫`)
-          }
-        })
-      }, [])
-
-      return (
-        <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '500', color: 'black' }}>
-          {message}
-        </Text>
-      )
-    }, [])
-
     const theme = {
       light: {
         gradientColors: ['white', '#ece9e4', '#ece9e4'],
@@ -118,89 +73,21 @@ const SimpleForm = () => {
       // }
     };
 
-
-    // const [defaultState, setDefaultState] = React.useState({
-    //   renderedSteps: [],
-    //   previousSteps: [],
-    //   currentStep: {},
-    //   previousStep: {},
-    //   steps: {},
-    //   editable: false,
-    //   inputValue: '',
-    //   inputInvalid: false,
-    //   defaultUserSettings: {},
-    // })
-
-    // React.useEffect(() => {
-    //   get('test-01').then(json => {
-    //     const data = JSON.parse(json)
-    //     setDefaultState(data);
-    //   })
-    // }, [])
-
-    const LoadingLastSession = React.useCallback(props => {
-      React.useEffect(() => {
-        AsyncStorage.getItem(STORAGE_CHATBOT_KEY).then(storageValue => {
-          if (storageValue) {
-            let defaultData = JSON.parse(storageValue);
-
-            console.log({ defaultData });
-
-            console.log({
-              overwrite: defaultData.overwrite,
-              trigger: defaultData.lastTrigger
-            });
-
-            props.triggerNextStep({ 
-              value: true,
-              defaultTrigger: '7',
-              overwrite: {
-                ...defaultData.overwrite,
-                ['lastTrigger']: defaultData.lastTrigger
-              },
-              // trigger: defaultData.lastTrigger
-              trigger: 'reload-last-session-message'
-            });
-          } else {
-            props.triggerNextStep({ value: false, trigger: 'initialize' });
-          }
-        });
-      }, [])
-
-      return null;
-    }, [])
-
-    async function handleStep (step, data) {
-      if (step?.value || data?.overwrite) {
-        const storageValue = await AsyncStorage.getItem(STORAGE_CHATBOT_KEY);
-
-          let defaultData = {};
-          if (storageValue) {
-            defaultData = JSON.parse(storageValue);
-          } 
-
-          const stepOverwrite = data?.overwrite || {};
-
-          await AsyncStorage.setItem(STORAGE_CHATBOT_KEY, JSON.stringify({
-            lastTrigger: step?.trigger,
-            overwrite: { 
-              ...defaultData?.overwrite,
-              ...stepOverwrite,  
-              [step?.id]: step?.value,
-            }
-          }))
-      }
+    function bindMessagesWithEmoji (text, emojis) {
+      let count = 1;
+      return emojis.map(emoji => {
+        if (count < 3) count++;
+        else count = 1;
+        return `${emoji} ${text} ${'.'.repeat(count)}`
+      })
     }
 
-    
     return (
       <>
       <StatusBar barStyle="light-content"  backgroundColor="black" />
       <View style={{ flex: 1, backgroundColor: 'white' }}>
       <Gradient colors={theme['light'].gradientColors} opacitys={theme['light'].gradientOpacitys} >
           <ChatBot style={{ backgroundColor: 'transparent', flex: 1 }} 
-          // defaultState={defaultState}
-          // storageKey={'test-01'}
           botDelay={400} 
           inputAttributes={{
             placeholderTextColor: theme['light'].inputPlaceholderTextColor,
@@ -249,20 +136,12 @@ const SimpleForm = () => {
           }}
           contentStyle={{ backgroundColor: 'transparent', borderBottom: 0, padding: 12 }}
           keyboardVerticalOffset={0}
-          handleStep={handleStep}
+          handleStep={(step, data) => setLastSession({ step, overwrite: data?.overwrite })}
           steps={[
             {
               id: 'reload-last-session',
               waitAction: { 
-                text: [
-                  "Carregando sessão.   🕐",
-                  "Carregando sessão..  🕒",
-                  "Carregando sessão... 🕔",
-                  "Carregando sessão..  🕗",
-                  "Carregando sessão.   🕘",
-                  "Carregando sessão..  🕚",
-                  "Carregando sessão... 🕛",
-                ],
+                text: bindMessagesWithEmoji('Carregando sessão', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
                 delay: 200
               }, 
               replace: true,
@@ -521,19 +400,10 @@ const SimpleForm = () => {
             {
               id: 'andress',
               waitAction: { 
-                text: [
-                  "Carregando campos.   🕐",
-                  "Carregando campos..  🕒",
-                  "Carregando campos... 🕔",
-                  "Carregando campos..  🕗",
-                  "Carregando campos.   🕘",
-                  "Carregando campos..  🕚",
-                  "Carregando campos... 🕛",
-                  // "Carregando campos.  🕐🕒🕔🕗🕘🕚🕛",
-                ],
+                text: bindMessagesWithEmoji('Carregando campos', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
                 delay: 200
               }, 
-              component: <LoadingAwait />,
+              component: <LoadingAnddress />,
               trigger: 'number-quest',
             },
             //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
@@ -601,7 +471,7 @@ const SimpleForm = () => {
             //aqui
             {
               id: 'review-init',
-              component: <Review title={'Dados Principais 📄'} fields={[
+              component: <DataReview title={'Dados Principais 📄'} fields={[
                 { label: "Nome", value: "name" }, 
                 { label: "Email", value: "email" }, 
                 { label: "Nome Fantasia", value: "fantasyName" }, 
@@ -726,7 +596,7 @@ const SimpleForm = () => {
             },
             {
               id: 'review',
-              component: <Review title={'Dados de Localização 📍'} fields={[
+              component: <DataReview title={'Dados de Localização 📍'} fields={[
                 { label: "CEP", value: "cep" }, 
                 { label: "Estado", value: "state" }, 
                 { label: "Cidade", value: "city" }, 
@@ -791,19 +661,10 @@ const SimpleForm = () => {
             {
               id: 'andress-reload',
               waitAction: { 
-                text: [
-                  "Carregando campos.   🕐",
-                  "Carregando campos..  🕒",
-                  "Carregando campos... 🕔",
-                  "Carregando campos..  🕗",
-                  "Carregando campos.   🕘",
-                  "Carregando campos..  🕚",
-                  "Carregando campos... 🕛",
-                  // "Carregando campos.  🕐🕒🕔🕗🕘🕚🕛",
-                ],
+                text: bindMessagesWithEmoji('Carregando campos', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
                 delay: 200
               }, 
-              component: <LoadingAwait />,
+              component: <LoadingAnddress />,
               trigger: '7',
             },
             {
@@ -855,16 +716,7 @@ const SimpleForm = () => {
             {
               id: 'captcha',
               waitAction: { 
-                text: [
-                  "Carregando captcha.   🕐",
-                  "Carregando captcha..  🕒",
-                  "Carregando captcha... 🕔",
-                  "Carregando captcha..  🕗",
-                  "Carregando captcha.   🕘",
-                  "Carregando captcha..  🕚",
-                  "Carregando captcha... 🕛",
-                  // "Carregando captcha.  🕐🕒🕔🕗🕘🕚🕛",
-                ],
+                text: bindMessagesWithEmoji('Carregando CAPTCHA', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
                 delay: 200
               }, 
               component: <CaptchaComponent />,
@@ -988,147 +840,3 @@ const allStates = [
 'SE',
 'TO',
 ]
-
-
-const CaptchaComponent = props => {
-  const [captchaOpen, setCaptchaOpen] = React.useState(false);
-  const [hidden, setHidden] = React.useState(false);
-
-  const onMessage = event => {
-      setCaptchaOpen(true);
-
-
-      if (event && event.nativeEvent.data) {
-        if (['cancel', 'error', 'expired',].includes(event.nativeEvent.data)) {
-            setCaptchaOpen(false);
-            setHidden(true);
-            props.triggerNextStep({ value: false, trigger: 'captcha-failure' });
-            return;
-        } else {
-          console.log('Verified code from Google', event.nativeEvent.data);
-          setCaptchaOpen(false);
-          setTimeout(() => {
-              setHidden(true);
-              props.triggerNextStep({ value: event.nativeEvent.data, trigger: 'completed-message' });
-            }, 1500);
-        }
-      }
-  };
-
-  if (hidden) return (
-    <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '500', color: 'black' }}>Não sou um robô ✅</Text>
-  )
-
-  return (
-    <TouchableWithoutFeedback style={{ flex: 1 }}
-      onPress={() => setCaptchaOpen(true)}
-    >
-      <View style={{ flex: 1 }}>
-        {!captchaOpen && <TouchableWithoutFeedback onPress={() => setCaptchaOpen(false)}>
-          <View style={{ 
-            width: '40%', height: '100%', backgroundColor: 'transparent', 
-            position: 'absolute', zIndex: 2,
-            right: 0, bottom: 0
-          }} />
-        </TouchableWithoutFeedback>}
-        {captchaOpen && 
-          <View style={{ 
-            width: '100%', height: 60, backgroundColor: 'transparent', 
-            position: 'absolute', zIndex: 2,
-            bottom: 0
-          }} />
-        }
-        <WebView
-          originWhitelist={['*']}
-          mixedContentMode={'always'}
-          onMessage={onMessage}
-          javaScriptEnabled
-          injectedJavaScript={
-            `(${String(function () {
-              var originalPostMessage = window.ReactNativeWebView.postMessage;
-              var patchedPostMessage = function (message, targetOrigin, transfer) {
-                originalPostMessage(message, targetOrigin, transfer);
-              };
-              patchedPostMessage.toString = function () {
-                return String(Object.hasOwnProperty).replace('hasOwnProperty', 'postMessage');
-              };
-              window.ReactNativeWebView.postMessage = patchedPostMessage
-            })})();`
-          }
-          automaticallyAdjustContentInsets
-          style={[
-            { backgroundColor: 'transparent', width: '100%', height: 78, transform: [{ scale: 1 }] },
-            captchaOpen && {  width: '100%', height: 264 *2 }
-          ]}
-          source={{
-            html: `<!DOCTYPE html>
-            <html>
-            <head> 
-              <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=0.77">
-              <meta http-equiv="X-UA-Compatible" content="ie=edge"> 
-              <script src="https://recaptcha.google.com/recaptcha/api.js?explicit&hl=${'pt-BR'}"></script> 
-              <style>
-                html, body {
-                  overflow: hidden !important;
-                  width: 100% !important;
-                  height: 100% !important;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                }
-                * {
-                  padding: 0 !important;
-                  margin: 0 !important;
-                  box-sizing: border-box;
-                  border-width: 0 !important;
-                }
-                #captcha {
-                  width: 100% !important;
-                  height: 100% !important;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                }
-              </style>
-              <script type="text/javascript"> 
-              var onloadCallback = function() { };  
-              var onDataCallback = function(response) { 
-                window.ReactNativeWebView.postMessage(response);
-              };  
-              var onCancel = function() {  
-                window.ReactNativeWebView.postMessage("cancel"); 
-              }
-              var onDataExpiredCallback = function(error) {  window.ReactNativeWebView.postMessage("expired"); };  
-              var onDataErrorCallback = function(error) {  window.ReactNativeWebView.postMessage("error"); } 
-              </script> 
-            </head>
-            <body> 
-              <div id="captcha">
-                <div>
-                  <div class="g-recaptcha" style="display: inline-block; height: auto;" 
-                    data-sitekey="${"6Lfzv0QiAAAAAGOMRt6AELvUwzcRQgj8H4DgkwiL"}" data-callback="onDataCallback"  
-                    data-expired-callback="onDataExpiredCallback"  
-                    data-error-callback="onDataErrorCallback">
-                  </div>
-                <div>
-                </div>
-                </div>
-              </div>
-              <script type="text/javascript"> 
-                window.document.onload = function(e) {
-                  document.getElementById("g-recaptcha-response").addEventListener("click", function () {
-                    document.getElementById('captcha').style.display = 'none';
-                    window.ReactNativeWebView.postMessage("click");
-                  });
-                }
-              </script>
-            </body>
-            </html>
-            `,
-            baseUrl: 'https://www.google.com/recaptcha/api/siteverify?',
-          }}
-        />
-      </View>
-    </TouchableWithoutFeedback>
-  )
-}

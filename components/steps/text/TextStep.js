@@ -18,12 +18,14 @@ const TextStep = props => {
     const { step } = props;
     const { component, delay, waitAction } = step;
     const isComponentWatingUser = component && waitAction;
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       setLoading(false);
       if (!isComponentWatingUser) {
         props.triggerNextStep();
       }
     }, delay);
+
+    return () => clearTimeout(timeout);
   }, [])
 
     const {

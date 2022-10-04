@@ -476,15 +476,20 @@ const ChatBot = props => {
 
     React.useEffect(() => {
       if (editable) {
-        setTimeout(() => {
+        const timeoutOne = setTimeout(() => {
           inputRef?.current?.focus?.();
           inputRef?.current?.getElement?.()?.focus?.();
           scrollView?.current?.scrollToEnd?.({ animated: true });
           scrollView?.current?.scrollTo?.({y: 0, animated: true});
         }, 200);
-        setTimeout(() => {
+        const timeoutTwo = setTimeout(() => {
           scrollView?.current?.scrollToEnd?.({ animated: true });
         }, 500);
+
+        return () => {
+          clearTimeout(timeoutOne);
+          clearTimeout(timeoutTwo);
+        }
       }
     }, [editable]);
 
