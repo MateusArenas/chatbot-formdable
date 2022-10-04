@@ -3,6 +3,10 @@ import React from 'react';
 const STORAGE_CHATBOT_KEY = "RCA_CHATBOT-1.2.8";
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
+export async function clearLastSession () {
+  await AsyncStorage.removeItem(STORAGE_CHATBOT_KEY)
+}
+
 export async function setLastSession ({ step, overwrite }) {
   if (step?.value || overwrite) {
     const storageValue = await AsyncStorage.getItem(STORAGE_CHATBOT_KEY);

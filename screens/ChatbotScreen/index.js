@@ -17,7 +17,7 @@ const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
 
 import DataReview from './DataReview';
 import LoadingAnddress from './LoadingAnddress'
-import LoadingLastSession, { setLastSession } from './LoadingLastSession'
+import LoadingLastSession, { setLastSession, clearLastSession } from './LoadingLastSession'
 import CaptchaComponent from './CaptchaComponent'
 
 const SimpleForm = () => {
@@ -41,6 +41,7 @@ const SimpleForm = () => {
         // const { data } = await api.post('/cadastro', bodyFormData, { 
         //   headers: { "Content-Type": "multipart/form-data" }
         // })
+        await clearLastSession();
         console.log({ res: data });
       } catch (err) {
         console.log({ err });
