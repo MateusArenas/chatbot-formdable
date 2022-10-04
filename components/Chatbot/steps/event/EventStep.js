@@ -2,12 +2,11 @@ import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 
 import Loading from '../common/Loading';
-import CustomStepContainer from './CustomStepContainer';
+import EventStepContainer from './EventStepContainer';
 
 import { Animated, Easing } from 'react-native';
 
-const CustomStep = props => {
-  const [loading, setLoading] = React.useState(true);
+const EventStep = props => {
   const [stage, setStage] = React.useState(0);
 
   React.useEffect(() => {
@@ -30,7 +29,6 @@ const CustomStep = props => {
     const { delay } = props;
     const { waitAction } = props.step;
     const timeout = setTimeout(() => {
-      setLoading(false);
       if (!waitAction) {
         props.triggerNextStep();
       }
@@ -43,7 +41,7 @@ const CustomStep = props => {
   const [contentSizeY, setContentSizeY] = React.useState(0);
 
   React.useEffect(() => {
-    if (contentSizeY && loading) {
+    if (contentSizeY) {
       pushAnim.setValue(-(contentSizeY*2));
       Animated.timing(
         pushAnim,
@@ -55,34 +53,38 @@ const CustomStep = props => {
         }
       ).start();
     }
-  }, [pushAnim, contentSizeY, loading])
+  }, [pushAnim, contentSizeY])
+
+    const handleEvent = props => {
+        const { step, steps, previousStep, triggerNextStep } = props;
+        const { event } = step;
+        return event({
+            step,
+            steps,
+            previousStep,
+            triggerNextStep,
+        });
+    }
+
+    React.useEffect(() => handleEvent(props), []);
 
     return (
-      <CustomStepContainer 
+      <EventStepContainer 
         onLayout={e => {
           !contentSizeY && setContentSizeY(e.nativeEvent.layout.height)
         }} 
         className="rsc-cs"
-        style={[props?.style, props?.step?.metadata?.hide && { 
-          backgroundColor: 'transparent', borderColor: 'transparent',
-          display: loading ? 'flex' : 'none'
-        },
-        { bottom: pushAnim }
-        ]}
+        style={[props?.style, { bottom: pushAnim }]}
       >
-        {
-          loading ? (
-            <Loading children={props?.step?.waitAction?.text?.[stage]}
-              color={props?.step?.loadingColor}
-              custom={true}
-            />
-          ) : <RenderComponent {...props}/>
-        }
-      </CustomStepContainer>
+        <Loading children={props?.step?.waitAction?.text?.[stage]}
+            color={props?.step?.loadingColor}
+            custom={true}
+        />
+      </EventStepContainer>
     );
 }
 
-export default React.memo(CustomStep);
+export default React.memo(EventStep);
 
 
 const RenderComponent = React.memo(props => {

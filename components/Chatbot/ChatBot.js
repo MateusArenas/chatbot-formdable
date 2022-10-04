@@ -4,13 +4,15 @@ import React, { Component } from 'react';
 import { Dimensions, Keyboard, Platform, ScrollView, TextInput } from 'react-native';
 import { TextInputMask } from 'react-native-masked-text'
 
+// import { set } from '../../utils/Store'
+
 import Button from './Button';
 import ButtonText from './ButtonText';
 import ChatBotContainer from './ChatBotContainer';
 import Footer from './Footer';
 import InputView from './InputView';
 import schema from './schemas/schema';
-import { CustomStep, OptionsStep, TextStep } from './steps/steps';
+import { CustomStep, OptionsStep, TextStep, EventStep } from './steps/steps';
 
 const { height, width } = Dimensions.get('window');
 
@@ -73,6 +75,11 @@ const ChatBot = props => {
         delay: customDelay,
         loadingColor: customLoadingColor,
       };
+      const defaultEventSettings = {
+        // replace: true,
+        delay: customDelay,
+        loadingColor: customLoadingColor,
+      };
   
       for (let i = 0, len = props.steps.length; i < len; i += 1) {
         const step = props.steps[i];
@@ -84,6 +91,8 @@ const ChatBot = props => {
           settings = defaultBotSettings;
         } else if (step.component) {
           settings = defaultCustomSettings;
+        } else if (step.event) {
+          settings = defaultEventSettings;
         }
   
         steps[step.id] = Object.assign(
@@ -261,10 +270,6 @@ const ChatBot = props => {
 
       if (isReplace) {
         renderedSteps.pop();
-      }
-
-      if (currentStep?.hide) {
-        delete currentStep.hide;
       }
 
       const trigger = getTriggeredStep(currentStep?.trigger, currentStep?.value);
@@ -476,19 +481,19 @@ const ChatBot = props => {
 
     React.useEffect(() => {
       if (editable) {
-        const timeoutOne = setTimeout(() => {
+        const first = setTimeout(() => {
           inputRef?.current?.focus?.();
           inputRef?.current?.getElement?.()?.focus?.();
           scrollView?.current?.scrollToEnd?.({ animated: true });
           scrollView?.current?.scrollTo?.({y: 0, animated: true});
         }, 200);
-        const timeoutTwo = setTimeout(() => {
+        const second = setTimeout(() => {
           scrollView?.current?.scrollToEnd?.({ animated: true });
         }, 500);
 
         return () => {
-          clearTimeout(timeoutOne);
-          clearTimeout(timeoutTwo);
+          clearTimeout(first);
+          clearTimeout(second);
         }
       }
     }, [editable]);
@@ -669,7 +674,7 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
     hideBotAvatar,
     hideUserAvatar,
   } = props;
-  const { options, component, asMessage } = step;
+  const { options, component, action, asMessage } = step;
   const steps = {};
   const stepIndex = renderedSteps.map(s => s.id).indexOf(step.id);
   const previousStep = stepIndex > 0 ? renderedSteps?.[index - 1] : {};
@@ -687,6 +692,20 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
   if (component && !asMessage) {
     return (
       <CustomStep
+        key={index}
+        delay={customDelay}
+        step={step}
+        steps={steps}
+        style={customStyle}
+        previousStep={previousStep}
+        triggerNextStep={triggerNextStep}
+      />
+    );
+  }
+
+  if (action && !asMessage && !component) {
+    return (
+      <EventStep
         key={index}
         delay={customDelay}
         step={step}

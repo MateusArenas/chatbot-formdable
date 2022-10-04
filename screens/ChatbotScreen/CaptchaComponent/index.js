@@ -18,15 +18,15 @@ const CaptchaComponent = props => {
         if (['cancel', 'error', 'expired',].includes(event.nativeEvent.data)) {
             setCaptchaOpen(false);
             setHidden(true);
-            props.triggerNextStep({ value: false, trigger: 'captcha-failure' });
+            props.triggerNextStep({ trigger: 'captcha-failure' });
             return;
         } else {
-          console.log('Verified code from Google', event.nativeEvent.data);
+          console.log('Verified code from Google', event?.nativeEvent?.data);
           setCaptchaOpen(false);
-          setTimeout(() => {
+          // setTimeout(() => {
               setHidden(true);
-              props.triggerNextStep({ value: event.nativeEvent.data, trigger: 'completed-message' });
-            }, 1500);
+              props.triggerNextStep({ value: event?.nativeEvent?.data });
+            // }, 1500);
         }
       }
   };

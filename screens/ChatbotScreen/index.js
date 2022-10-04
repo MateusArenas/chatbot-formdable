@@ -4,49 +4,31 @@ import { cnpj, cpf } from 'cpf-cnpj-validator';
 import React, { Component } from 'react';
 import { validate } from 'react-email-validator';
 import { Alert, Button, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import { NativeModules, Platform, StatusBar } from 'react-native';
+import { NativeModules, Platform, StatusBar, Linking } from 'react-native';
 import * as FeatherIcon from 'react-native-feather';
-// import api from '../service/api';
-
-import ChatBot from '../../components';
-import Gradient from '../../components/Gradient';
 
 const { StatusBarManager } = NativeModules;
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
 
+import LoadingLastSession, { 
+  setLastSession, 
+  clearLastSession, 
+  RELOAD_LAST_SESSION_KEY 
+} from './LoadingLastSession'
 import DataReview from './DataReview';
 import LoadingAnddress from './LoadingAnddress'
-import LoadingLastSession, { setLastSession, clearLastSession } from './LoadingLastSession'
 import CaptchaComponent from './CaptchaComponent'
+import SubmitDataAction from './SubmitDataAction'
+
+// import api from '../../service/api';
+
+import ChatBot from '../../components/Chatbot';
+import Gradient from '../../components/Gradient';
+import ContactWhatsappAction from './ContactWhatsappAction';
 
 const SimpleForm = () => {
     // const height = useHeaderHeight();
-
-    async function onSubmitFormData (obj) {
-      console.log({ obj });
-      const bodyFormData = new FormData();
-      //transform obj in formdata and check if false value for filter.
-      Object.keys(obj).forEach(key => obj[key] && bodyFormData.append(key, obj[key]))
-      try {
-        const { data } = await axios({
-          method: 'post',
-          url: 'http://10.0.2.2/credconsultas_api/cadastro',
-          data: bodyFormData,
-          headers: { 
-            "Content-Type": "multipart/form-data",
-            'token': '26d7c43e-504f-4bab-8177-8392fd4839ee'
-          },
-        });
-        // const { data } = await api.post('/cadastro', bodyFormData, { 
-        //   headers: { "Content-Type": "multipart/form-data" }
-        // })
-        await clearLastSession();
-        console.log({ res: data });
-      } catch (err) {
-        console.log({ err });
-      }
-    }
 
     const theme = {
       light: {
@@ -142,15 +124,18 @@ const SimpleForm = () => {
             {
               id: 'reload-last-session',
               waitAction: { 
-                text: bindMessagesWithEmoji('Carregando sessão', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
-                delay: 200
+                text: bindMessagesWithEmoji(
+                  'Carregando sessão', 
+                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
+                ),
+                delay: 100
               }, 
               replace: true,
               component: <LoadingLastSession />,
               trigger: 'initialize',
             },
             {
-              id: 'reload-last-session-message',
+              id: RELOAD_LAST_SESSION_KEY,
               message: "Deseja continuar com os dados anteriores ou iniciar uma nova consulta?",
               trigger: 'reload-last-session-require'
             },
@@ -401,8 +386,11 @@ const SimpleForm = () => {
             {
               id: 'andress',
               waitAction: { 
-                text: bindMessagesWithEmoji('Carregando campos', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
-                delay: 200
+                text: bindMessagesWithEmoji(
+                  'Carregando campos', 
+                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
+                ),
+                delay: 100
               }, 
               component: <LoadingAnddress />,
               trigger: 'number-quest',
@@ -662,8 +650,11 @@ const SimpleForm = () => {
             {
               id: 'andress-reload',
               waitAction: { 
-                text: bindMessagesWithEmoji('Carregando campos', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
-                delay: 200
+                text: bindMessagesWithEmoji(
+                  'Carregando campos', 
+                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
+                ),
+                delay: 100
               }, 
               component: <LoadingAnddress />,
               trigger: '7',
@@ -717,11 +708,55 @@ const SimpleForm = () => {
             {
               id: 'captcha',
               waitAction: { 
-                text: bindMessagesWithEmoji('Carregando CAPTCHA', ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]),
-                delay: 200
+                text: bindMessagesWithEmoji(
+                  'Carregando CAPTCHA', 
+                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
+                ),
+                delay: 100
               }, 
               component: <CaptchaComponent />,
+              trigger: 'submit-data',
+            },
+            {
+              id: 'submit-data',
+              waitAction: { 
+                text: bindMessagesWithEmoji(
+                  'Enviando dados', 
+                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
+                ),
+                delay: 100
+              }, 
+              component: <SubmitDataAction />,
               trigger: 'completed-message',
+            },
+            {
+              id: 'submit-data-failure-message',
+              message: 'Não foi possível enviar os seus dados, tente mais tarde ou entre em contato conosco.\n+55 (11) 96376-3329 📞',
+              trigger: 'submit-data-failure-action',
+            },
+            {
+              id: 'submit-data-failure-action',
+              inputAttributes: { placeholder: "Escolha uma opção" },
+              options: [
+                { key: "1", label: 'Tentar novamente', trigger: 'submit-data' },
+                { key: "2", label: 'Revisar campos', trigger: 'review-init' },
+                { key: "3", label: 'Entrar em contato', trigger: 'rca-whatsapp' },
+              ],
+            },
+            {
+              id: 'rca-whatsapp',
+              waitAction: { 
+                text: bindMessagesWithEmoji(
+                  'Abrindo conversa', 
+                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
+                ),
+                delay: 100
+              }, 
+              component: (
+                <ContactWhatsappAction phone={"5511963763329"} text={"oi"} />
+              ),
+              replace: true,
+              trigger: 'submit-data-failure-message',
             },
             {
               id: 'completed-message',
@@ -736,28 +771,28 @@ const SimpleForm = () => {
           ]}
 
           handleEnd={({renderedSteps, steps, values }) => {
-            const fieldsWithValues = renderedSteps
-            .filter(item => item.value !== undefined)
-            .filter(item => item.value?.split?.('-')?.[0] !== "null");
-            const fields = Object.assign(...fieldsWithValues.map(step => ({ [step.id]: step.value })));     
-            onSubmitFormData({
-              "captcha": fields['captcha'],
-              "fantasia": fields['fantasyName'],
-              "razao": fields['socialReason'],
-              "cnpj": fields['cnpj'],
-              "celular": fields['cell'],
-              "email": fields['email'],
-              "cep": fields['cep'],
-              "logradouro": fields['street'],
-              "numero": fields['number'],
-              "bairro": fields['district'],
-              "cidade": fields['city'],
-              "estado": fields['state'],
-              "produto_credito": fields['product'] === 'analize' || fields['product'] === 'analize+procedencia',
-              "produto_veicular": fields['product'] === 'procedencia' || fields['product'] === 'analize+procedencia',
-              "contato": fields['name'],
-              "complemento": fields['complement'] || ""
-            });
+            // const fieldsWithValues = renderedSteps
+            // .filter(item => item.value !== undefined)
+            // .filter(item => item.value?.split?.('-')?.[0] !== "null");
+            // const fields = Object.assign(...fieldsWithValues.map(step => ({ [step.id]: step.value })));     
+            // onSubmitFormData({
+            //   "captcha": fields['captcha'],
+            //   "fantasia": fields['fantasyName'],
+            //   "razao": fields['socialReason'],
+            //   "cnpj": fields['cnpj'],
+            //   "celular": fields['cell'],
+            //   "email": fields['email'],
+            //   "cep": fields['cep'],
+            //   "logradouro": fields['street'],
+            //   "numero": fields['number'],
+            //   "bairro": fields['district'],
+            //   "cidade": fields['city'],
+            //   "estado": fields['state'],
+            //   "produto_credito": fields['product'] === 'analize' || fields['product'] === 'analize+procedencia',
+            //   "produto_veicular": fields['product'] === 'procedencia' || fields['product'] === 'analize+procedencia',
+            //   "contato": fields['name'],
+            //   "complemento": fields['complement'] || ""
+            // });
           }}
           />
       </Gradient>

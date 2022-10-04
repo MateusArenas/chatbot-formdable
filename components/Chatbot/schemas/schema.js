@@ -2,6 +2,7 @@ import userSchema from './userSchema';
 import textSchema from './textSchema';
 import optionsSchema from './optionsSchema';
 import customSchema from './customSchema';
+import eventSchema from './eventSchema';
 import updateSchema from './updateSchema';
 
 const schema = {
@@ -16,6 +17,8 @@ const schema = {
       parser = optionsSchema;
     } else if (step.component) {
       parser = customSchema;
+    } else if (step.event) {
+      parser = eventSchema;
     } else if (step.update) {
       parser = updateSchema;
     } else {
