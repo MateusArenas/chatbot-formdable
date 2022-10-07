@@ -48,7 +48,7 @@ const SubmitDataAction = props => {
           data: bodyFormData,
           headers: { 
             "Content-Type": "multipart/form-data",
-            'token': '26d7c43e-504f-4bab-8177-8392fd4839ee'
+            'token': ''
           },
         })
         .then(({ data }) => {
