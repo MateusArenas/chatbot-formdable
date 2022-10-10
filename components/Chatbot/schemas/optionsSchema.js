@@ -5,6 +5,26 @@ export default [
     required: true,
   },
   {
+    key: 'title',
+    types: ['string'],
+    required: false,
+  },
+  {
+    key: 'feature',
+    types: ['boolean'],
+    required: false,
+  },  
+  {
+    key: 'multiple',
+    types: ['boolean'],
+    required: false,
+  },  
+  {
+    key: 'trigger',
+    types: ['string', 'number', 'function'],
+    required: false,
+  },
+  {
     key: 'options',
     types: ['object'],
     required: true,

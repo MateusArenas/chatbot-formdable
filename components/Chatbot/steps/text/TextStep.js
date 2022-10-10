@@ -10,6 +10,8 @@ import TextStepContainer from './TextStepContainer';
 
 import { Animated, Easing } from 'react-native'; 
 
+const defaultBotAvatar = require('../../../../assets/avatar-horiz.png');
+
 const TextStep = props => {
   /* istanbul ignore next */
   const [loading, setLoading] = React.useState(true);
@@ -38,6 +40,7 @@ const TextStep = props => {
       userBubbleStyle,
       hideBotAvatar,
       hideUserAvatar,
+      steps,
     } = props;
     const {
       avatar,
@@ -66,49 +69,61 @@ const TextStep = props => {
       }
     }, [pushAnim, contentSizeY, loading])
 
+    const lastStepBotId = Object.keys(steps).reverse().find(key => 
+      (!steps?.[key]?.user && steps?.[key]?.message)
+    );
+
     return (
-      <TextStepContainer style={{ bottom: pushAnim }}
-        onLayout={e => {
-          !contentSizeY && setContentSizeY(e.nativeEvent.layout.height)
-        }} 
-        className="rsc-ts"
-        user={user}
-      >
-        {
-          isFirst && showAvatar &&
-          <ImageContainer
-            className="rsc-ts-image-container"
-            borderColor={bubbleColor}
-            style={avatarWrapperStyle}
-            user={user}
-          >
-            <Img
-              className="rsc-ts-image"
-              style={avatarStyle}
-              showAvatar={showAvatar}
-              user={user}
-              source={{ uri: avatar }}
-              alt="avatar"
-            />
-          </ImageContainer>
-        }
-        <Bubble
-          className="rsc-ts-bubble"
-          style={user ? userBubbleStyle || bubbleStyle :  bubbleStyle}
+      <>
+        <TextStepContainer style={{ bottom: pushAnim, position: 'relative', alignItems: 'center' }}
+          onLayout={e => {
+            !contentSizeY && setContentSizeY(e.nativeEvent.layout.height)
+          }} 
+          className="rsc-ts"
           user={user}
-          bubbleColor={bubbleColor}
-          showAvatar={showAvatar}
-          isFirst={isFirst}
-          isLast={isLast}
-        >
-            <TextMessage
-              className="rsc-ts-text"
-              fontColor={fontColor}
-            >
-              <RenderMessage {...props} />
-            </TextMessage>
-        </Bubble>
-      </TextStepContainer>
+          >
+            {
+              (
+                lastStepBotId === step.id 
+                && showAvatar
+              ) &&
+              <ImageContainer
+                className="rsc-ts-image-container"
+                borderColor={bubbleColor}
+                style={[avatarWrapperStyle, { 
+                  alignSelf: 'center', bottom: 0, backgroundColor: 'tomato', 
+                  borderWidth: 0, position: 'absolute',
+                }]}
+                user={user}
+              >
+                <Img 
+                  className="rsc-ts-image"
+                  style={[avatarStyle, { transform: [{ scale: 1.25 }] }]}
+                  showAvatar={showAvatar}
+                  user={user}
+                  source={defaultBotAvatar || { uri: avatar }}
+                  alt="avatar"
+                />
+              </ImageContainer>
+            }
+          <Bubble
+            className="rsc-ts-bubble"
+            style={user ? userBubbleStyle || bubbleStyle :  bubbleStyle}
+            user={user}
+            bubbleColor={bubbleColor}
+            showAvatar={showAvatar}
+            isFirst={isFirst}
+            isLast={isLast}
+          >
+              <TextMessage
+                className="rsc-ts-text"
+                fontColor={fontColor}
+              >
+                <RenderMessage {...props} />
+              </TextMessage>
+          </Bubble>
+        </TextStepContainer>
+      </>
     );
 }
 

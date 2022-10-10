@@ -4,7 +4,7 @@ import React, { Component } from 'react';
 import Loading from '../common/Loading';
 import EventStepContainer from './EventStepContainer';
 
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, SafeAreaView, View } from 'react-native';
 
 const EventStep = props => {
   const [stage, setStage] = React.useState(0);
@@ -66,7 +66,9 @@ const EventStep = props => {
         });
     }
 
-    React.useEffect(() => handleEvent(props), []);
+    React.useEffect(() => {
+      handleEvent(props)
+    }, []);
 
     return (
       <EventStepContainer 
@@ -76,24 +78,39 @@ const EventStep = props => {
         className="rsc-cs"
         style={[props?.style, { bottom: pushAnim }]}
       >
-        <Loading children={props?.step?.waitAction?.text?.[stage]}
-            color={props?.step?.loadingColor}
-            custom={true}
-        />
+        <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+        }}>
+          <View style={{
+              backgroundColor: '#f9f9f9',
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor: '#f9f9f9',
+              paddingTop: 16,
+              paddingRight: 22,
+              paddingBottom: 16,
+              paddingLeft: 22,
+              shadowColor: "#000",
+              shadowOffset: {
+                width: 0,
+                height: 1,
+              },
+              shadowOpacity: 0.10,
+              shadowRadius: 4.41,
+              elevation: 2,
+          }}>
+            <Loading children={props?.step?.waitAction?.text?.[stage]}
+                color={props?.step?.loadingColor}
+                custom={true}
+            />
+          </View>
+        </View>
       </EventStepContainer>
     );
 }
 
 export default React.memo(EventStep);
-
-
-const RenderComponent = React.memo(props => {
-  const { step, steps, previousStep, triggerNextStep } = props;
-  const { component } = step;
-  return React.cloneElement(component, {
-    step,
-    steps,
-    previousStep,
-    triggerNextStep,
-  });
-})

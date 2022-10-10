@@ -3,9 +3,12 @@ import axios from 'axios';
 import { cnpj, cpf } from 'cpf-cnpj-validator';
 import React, { Component } from 'react';
 import { validate } from 'react-email-validator';
-import { Alert, Button, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import { NativeModules, Platform, StatusBar, Linking } from 'react-native';
+import { Alert, Animated, ActivityIndicator, View ,Image} from 'react-native';
+import { Linking, NativeModules, Platform, StatusBar } from 'react-native';
 import * as FeatherIcon from 'react-native-feather';
+
+
+import { BottomSheetModal } from '../../components/Chatbot/BottomSheetModal'
 
 const { StatusBarManager } = NativeModules;
 
@@ -76,7 +79,8 @@ const SimpleForm = () => {
             placeholderTextColor: theme['light'].inputPlaceholderTextColor,
             keyboardAppearance: 'light'
           }}
-          hideBotAvatar hideHeader hideUserAvatar 
+          // hideBotAvatar 
+          hideHeader hideUserAvatar 
           userFontColor={theme['light'].userFontColor} 
           userBubbleColor={theme['light'].userBubbleColor}
           optionFontColor={theme['light'].optionFontColor} 
@@ -119,8 +123,27 @@ const SimpleForm = () => {
           }}
           contentStyle={{ backgroundColor: 'transparent', borderBottom: 0, padding: 12 }}
           keyboardVerticalOffset={0}
-          handleStep={(step, data) => setLastSession({ step, overwrite: data?.overwrite })}
+          handleStep={(step, data) => {
+            setLastSession({ step, overwrite: data?.overwrite })
+            console.log({ step, overwrite: data?.overwrite });
+          }}
           steps={[
+            // {
+            //   id: 'evento-teste',
+            //   waitAction: { 
+            //     text: <Image source={defaultBotAvatar}
+            //       style={{ width: 60, height: 60 }}
+            //     />,
+            //     delay: 100
+            //   },
+            //   replace: true,
+            //   event: async props => {
+            //     setTimeout(() => {
+            //       props?.triggerNextStep({});
+            //     }, 5000000000);
+            //   },
+            //   trigger: 'reload-last-session',
+            // },
             {
               id: 'reload-last-session',
               waitAction: { 
@@ -179,15 +202,19 @@ const SimpleForm = () => {
             },
             {
               id: 'product-quest',
-              message: 'Olá {previousValue}! Qual é o tipo de produto que deseja contratar?',
+              message: 'Olá {previousValue}! Quais produtos deseja contratar?',
               trigger: 'product',
             },
             {
               id: 'product',
+              title: 'Quais produtos você quer contratar?',
+              feature: true,
+              multiple: true,
+              trigger: 'email-quest',
               options: [
-                { value: 'analize', label: 'Análise de Crédito', trigger: 'email-quest' },
-                { value: 'procedencia', label: 'Procedência Veicular', trigger: 'email-quest' },
-                { value: 'analize+procedencia', label: 'Análise de Crédito + Procedência Veicular', trigger: 'email-quest' },
+                { value: 'analize', label: 'Análise de Crédito' },
+                { value: 'procedencia', label: 'Procedência Veicular' },
+                // { value: 'analize+procedencia', label: 'Análise de Crédito + Procedência Veicular', trigger: 'email-quest' },
               ],
             },
             {
@@ -876,3 +903,7 @@ const allStates = [
 'SE',
 'TO',
 ]
+
+
+
+

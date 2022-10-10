@@ -11,9 +11,9 @@ const Bubble = (props) => {
   const borderTopLeftRadius = React.useMemo(() => {
     const { isFirst, isLast, user } = props;
     if (!isFirst && !isLast) {
-      return user ? 18 : 0;
+      return user ? 18 : 2;
     } else if (!isFirst && isLast) {
-      return user ? 18 : 0;
+      return user ? 18 : 2;
     }
     return 18;
   }, [props])
@@ -21,9 +21,9 @@ const Bubble = (props) => {
   const borderTopRightRadius = React.useMemo(() => {
     const { isFirst, isLast, user } = props;
     if (!isFirst && !isLast) {
-      return user ? 0 : 18;
+      return user ? 2 : 18;
     } else if (!isFirst && isLast) {
-      return user ? 0 : 18;
+      return user ? 2 : 18;
     }
     return 18;
   }, [props])
@@ -31,21 +31,21 @@ const Bubble = (props) => {
   const borderBottomRightRadius = React.useMemo(() => {
     const { isFirst, isLast, user } = props;
     if (!isFirst && !isLast) {
-      return user ? 0 : 18;
+      return user ? 2 : 18;
     } else if (!isFirst && isLast) {
       return 18;
     }
-    return props.user ? 0 : 18;
+    return props.user ? 2 : 18;
   }, [props])
 
   const borderBottomLeftRadius = React.useMemo(() => {
     const { isFirst, isLast, user } = props;
     if (!isFirst && !isLast) {
-      return user ? 18 : 0;
+      return user ? 18 : 2;
     } else if (!isFirst && isLast) {
       return 18;
     }
-    return props.user ? 18 : 0;
+    return props.user ? 18 : 2;
   }, [props])
 
   const marginTop = React.useMemo(() => {
@@ -75,7 +75,8 @@ const Bubble = (props) => {
     if (!isFirst && showAvatar) {
       return user ? 6 : 58;
     } else if (showAvatar) {
-      return 0;
+      // return 0;
+      return 58;
     }
 
     return 6;

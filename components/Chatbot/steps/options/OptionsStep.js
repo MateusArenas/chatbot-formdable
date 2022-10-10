@@ -1,12 +1,11 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import { Animated, Easing, TouchableOpacity, View, Text } from 'react-native';
 
 import Option from './Option';
 import OptionElement from './OptionElement';
 import Options from './Options';
 import OptionText from './OptionText';
-
-import { Animated, Easing } from 'react-native'; 
 
 const OptionsStep = props => {
   /* istanbul ignore next */

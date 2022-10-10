@@ -29,8 +29,8 @@ const SubmitDataAction = props => {
       "bairro": fields['district'],
       "cidade": fields['city'],
       "estado": fields['state'],
-      "produto_credito": fields['product'] === 'analize' || fields['product'] === 'analize+procedencia',
-      "produto_veicular": fields['product'] === 'procedencia' || fields['product'] === 'analize+procedencia',
+      "produto_credito": fields['product'].find(key => key === 'analize') || fields['product'].find(key => (key === 'analize') || (key === 'procedencia')),
+      "produto_veicular": fields['product'].find(key => key === 'procedencia') || fields['product'].find(key => (key === 'analize') || (key === 'procedencia')),
       "contato": fields['name'],
       "complemento": fields['complement'] || ""
     };
@@ -48,7 +48,7 @@ const SubmitDataAction = props => {
           data: bodyFormData,
           headers: { 
             "Content-Type": "multipart/form-data",
-            'token': '26d7c43e-504f-4bab-8177-8392fd4839ee'
+            'token': ''
           },
         })
         .then(({ data }) => {
