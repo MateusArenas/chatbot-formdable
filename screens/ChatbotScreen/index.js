@@ -37,9 +37,9 @@ const SimpleForm = () => {
       light: {
         gradientColors: ['white', '#ece9e4', '#ece9e4'],
         gradientOpacitys: [1, .8, .8],
-        userFontColor: "#2c2a2a", userBubbleColor: "#f6f6f6",
         optionFontColor: "#2c2a2a", optionBubbleColor: "#fafafa",
-        botFontColor: "#fafafa", botBubbleColor: "#272527",
+        userFontColor: "#fafafa", userBubbleColor: "#272527",
+        botFontColor: "#2c2a2a", botBubbleColor: "#f6f6f6",
         sendIconColor: "#2c2a2a",
         footerBackgroundColor: '#f6f6f6',
         inputTextColor: '#2c2a2a',

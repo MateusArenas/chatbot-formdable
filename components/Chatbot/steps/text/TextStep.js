@@ -69,6 +69,23 @@ const TextStep = props => {
       }
     }, [pushAnim, contentSizeY, loading])
 
+    const [loadImage, setLoadImage] = React.useState(false);
+    const scaleAnim = React.useRef(new Animated.Value(0)).current
+
+    React.useEffect(() => {
+      if (loadImage) {
+        Animated.timing(
+          scaleAnim,
+          {
+            toValue: 1,
+            duration: step.delay/2,
+            useNativeDriver: false,
+            easing: Easing.cubic 
+          }
+        ).start();
+      }
+    }, [loadImage, scaleAnim])
+
     const lastStepBotId = [...props?.renderedSteps]?.reverse().find(step => 
       ( !step?.user && (step?.message || step?.asMessage) )
     )?.id;
@@ -87,16 +104,19 @@ const TextStep = props => {
                 lastStepBotId === step.id 
                 && showAvatar
               ) &&
-              <ImageContainer
+              <ImageContainer 
                 className="rsc-ts-image-container"
                 borderColor={bubbleColor}
-                style={[avatarWrapperStyle, { 
+                style={[avatarWrapperStyle, 
+                { opacity: scaleAnim, transform: [{ scale: scaleAnim }] },  
+                { 
                   alignSelf: 'center', bottom: 0, backgroundColor: 'tomato', 
                   borderWidth: 0, position: 'absolute',
-                }]}
+                }, 
+                ]}
                 user={user}
               >
-                <Img 
+                <Img onLoadEnd={() => setLoadImage(true)}
                   className="rsc-ts-image"
                   style={[avatarStyle, { transform: [{ scale: 1.25 }] }]}
                   showAvatar={showAvatar}

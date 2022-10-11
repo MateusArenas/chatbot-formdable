@@ -1,9 +1,9 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Animated } from 'react-native';
 
 const ImageContainer = (props) => {
   return (
-    <View {...props} 
+    <Animated.View {...props} 
       style={[
         {
           marginTop: 6,
