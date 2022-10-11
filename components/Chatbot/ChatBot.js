@@ -286,6 +286,7 @@ const ChatBot = props => {
           for (let i = 0, len = nextStep.options.length; i < len; i += 1) {
             nextStep.options[i].trigger = updateStep.trigger;
           }
+          nextStep.trigger = updateStep.trigger;
         } else {
           nextStep.trigger = updateStep.trigger;
         }
@@ -796,7 +797,7 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
         key={index}
         delay={customDelay}
         step={step}
-        steps={steps}
+        steps={steps} renderedSteps={renderedSteps}
         style={customStyle}
         previousStep={previousStep}
         triggerNextStep={triggerNextStep}
@@ -810,7 +811,7 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
         key={index}
         delay={customDelay}
         step={step}
-        steps={steps}
+        steps={steps}  renderedSteps={renderedSteps}
         style={customStyle}
         previousStep={previousStep}
         triggerNextStep={triggerNextStep}
@@ -836,7 +837,7 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
     <TextStep
       key={index}
       step={step}
-      steps={steps}
+      steps={steps} renderedSteps={renderedSteps}
       previousValue={previousStep.value}
       triggerNextStep={triggerNextStep}
       avatarStyle={avatarStyle}

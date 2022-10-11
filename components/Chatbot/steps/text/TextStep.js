@@ -69,9 +69,9 @@ const TextStep = props => {
       }
     }, [pushAnim, contentSizeY, loading])
 
-    const lastStepBotId = Object.keys(steps).reverse().find(key => 
-      (!steps?.[key]?.user && steps?.[key]?.message)
-    );
+    const lastStepBotId = [...props?.renderedSteps]?.reverse().find(step => 
+      ( !step?.user && (step?.message || step?.asMessage) )
+    )?.id;
 
     return (
       <>
