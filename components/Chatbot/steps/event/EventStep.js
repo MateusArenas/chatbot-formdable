@@ -1,10 +1,15 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import { Animated, Easing, SafeAreaView, Text, View } from 'react-native';
 
 import Loading from '../common/Loading';
+import Bubble from '../text/Bubble';
+import Img from '../text/Image';
+import ImageContainer from '../text/ImageContainer';
 import EventStepContainer from './EventStepContainer';
 
-import { Animated, Easing, SafeAreaView, View } from 'react-native';
+const defaultBotAvatar = require('../../../../assets/avatar-horiz.png');
+
 
 const EventStep = props => {
   const [stage, setStage] = React.useState(0);
@@ -67,8 +72,59 @@ const EventStep = props => {
     }
 
     React.useEffect(() => {
-      handleEvent(props)
-    }, []);
+      const { delay } = props;
+
+      const timeout = setTimeout(() => {
+        handleEvent(props)
+      }, delay);
+
+      return () => clearTimeout(timeout)
+    }, [props]);
+
+
+    const {
+      step,
+      isFirst,
+      isLast,
+      avatarStyle,
+      avatarWrapperStyle,
+      bubbleStyle,
+      userBubbleStyle,
+      hideBotAvatar,
+      hideUserAvatar,
+      steps,
+    } = props;
+    const {
+      avatar,
+      bubbleColor,
+      fontColor,
+      user,
+    } = step;
+
+    const showAvatar = user ? !hideUserAvatar : !hideBotAvatar;
+
+
+    const [loadImage, setLoadImage] = React.useState(false);
+    const scaleAnim = React.useRef(new Animated.Value(0)).current
+
+    React.useEffect(() => {
+      if (loadImage) {
+        Animated.timing(
+          scaleAnim,
+          {
+            toValue: 1,
+            duration: step.delay/2,
+            useNativeDriver: false,
+            easing: Easing.cubic 
+          }
+        ).start();
+      }
+    }, [loadImage, scaleAnim])
+
+    const lastStepBotId = [...props?.renderedSteps]?.reverse().find(step => 
+      ( !step?.user && (step?.message || step?.asMessage || step?.event) )
+    )?.id;
+
 
     return (
       <EventStepContainer 
@@ -78,37 +134,47 @@ const EventStep = props => {
         className="rsc-cs"
         style={[props?.style, { bottom: pushAnim }]}
       >
-        <View style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-        }}>
-          <View style={{
-              backgroundColor: '#f9f9f9',
-              borderRadius: 5,
-              borderWidth: 1,
-              borderColor: '#f9f9f9',
-              paddingTop: 16,
-              paddingRight: 22,
-              paddingBottom: 16,
-              paddingLeft: 22,
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 1,
-              },
-              shadowOpacity: 0.10,
-              shadowRadius: 4.41,
-              elevation: 2,
-          }}>
+      {
+              (
+                lastStepBotId === step.id 
+                && showAvatar
+              ) &&
+              <ImageContainer 
+                className="rsc-ts-image-container"
+                borderColor={bubbleColor}
+                style={[avatarWrapperStyle, 
+                { opacity: scaleAnim, transform: [{ scale: scaleAnim }] },  
+                { 
+                  alignSelf: 'center', bottom: 0, backgroundColor: '#0077ff', 
+                  position: 'absolute',
+                }, 
+                ]}
+                user={user}
+              >
+                <Img onLoadEnd={() => setLoadImage(true)}
+                  className="rsc-ts-image"
+                  style={[avatarStyle, { transform: [{ scale: 1.25 }] }]}
+                  showAvatar={showAvatar}
+                  user={user}
+                  source={defaultBotAvatar || { uri: avatar }}
+                  alt="avatar"
+                />
+              </ImageContainer>
+            }
+          <Bubble
+            className="rsc-ts-bubble"
+            style={user ? userBubbleStyle || bubbleStyle :  bubbleStyle}
+            user={user}
+            bubbleColor={bubbleColor}
+            showAvatar={showAvatar}
+            isFirst={isFirst}
+            isLast={isLast}
+          >
             <Loading children={props?.step?.waitAction?.text?.[stage]}
                 color={props?.step?.loadingColor}
                 custom={true}
             />
-          </View>
-        </View>
+          </Bubble>
       </EventStepContainer>
     );
 }

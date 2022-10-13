@@ -1,18 +1,17 @@
+import { useIsMounted } from '../../../hooks/useIsMounted'
+import axios from 'axios';
 import React from 'react';
 import { Text } from 'react-native';
-import axios from 'axios';
-
-import { useIsMounted } from '../../../hooks/useIsMounted'
 
 const LoadingAnddress = props => {
-  const [message, setMessage] = React.useState('');
+  // const [message, setMessage] = React.useState('');
 
-  const isMounted = useIsMounted();
+  // const isMounted = useIsMounted();
 
-  React.useEffect(() => {
+  // React.useEffect(() => {
     axios.get(`https://viacep.com.br/ws/${props.steps['cep'].value}/json/`).then(({ data }) => {
       if (!data?.erro) {
-        if(isMounted.current) {
+        // if(isMounted.current) {
           props.triggerNextStep({ 
             value: true,
             defaultTrigger: '7',
@@ -24,24 +23,25 @@ const LoadingAnddress = props => {
               complement: data.complemento,
             },
           });
-          setMessage(`Dados relativos ao cep carregados. ✅`)
-        }
+          // setMessage(`Dados relativos ao cep carregados. ✅`)
+        // }
       } else {
-        if(isMounted.current) { 
+        // if(isMounted.current) { 
           props.triggerNextStep({ trigger: 'cep-failure', value: false });
-          setMessage(`Falha ao carregar campos. 🚫`)
-        }
+          // setMessage(`Falha ao carregar campos. 🚫`)
+        // }
       }
     })
-  }, [])
+  // }, [])
 
-  if (!message) return props?.loadingComponent
+  // if (!message) return props?.loadingComponent
 
-  return (
-    <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '500', color: 'black' }}>
-      {message}
-    </Text>
-  )
+  // return (
+  //   <Text style={{ flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '500', color: 'black' }}>
+  //     {message}
+  //   </Text>
+  // )
 }
 
-export default React.memo(LoadingAnddress);
+export default LoadingAnddress;
+// export default React.memo(LoadingAnddress);

@@ -11,14 +11,15 @@ const Footer = (props) => {
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 1,
-          },
-          shadowOpacity: 0.10,
-          shadowRadius: 4.41,
-          elevation: 2,
+          borderTopWidth: 1, borderColor: 'rgba(0,0,0,.05)',
+          // shadowColor: "#000",
+          // shadowOffset: {
+          //   width: 0,
+          //   height: 1,
+          // },
+          // shadowOpacity: 0.10,
+          // shadowRadius: 4.41,
+          // elevation: 2,
         },
         props?.style
       ]}

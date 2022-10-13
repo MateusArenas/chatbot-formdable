@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Animated } from 'react-native';
+import { Animated, View } from 'react-native';
 
 const ChatStepContainer = (props) => {
   
@@ -7,10 +7,18 @@ const ChatStepContainer = (props) => {
     <Animated.View {...props} 
       style={[
         {
-          marginRight: 6,
-          marginBottom: 24,
-          marginTop: 14,
-          marginLeft: 6,
+          display: 'flex',
+          flexDirection: props.user ? 'row-reverse' : 'row',
+          alignItems: 'flex-end',
+          width: '100%',
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: 1,
+          },
+          shadowOpacity: 0.10,
+          shadowRadius: 4.41,
+          elevation: 2,
         },
         props?.style
       ]}

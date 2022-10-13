@@ -15,6 +15,7 @@ const ImageContainer = (props) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          borderWidth: 1, borderColor: "rgba(0,0,0,.05)",
           // paddingTop: 2,
           // paddingRight: 2,
           // paddingBottom: 2,
@@ -26,8 +27,6 @@ const ImageContainer = (props) => {
           // borderBottomRightRadius: props.user ? 21 : 0,
           // borderBottomLeftRadius: props.user ? 0 : 21,
           borderRadius: 30,
-          borderWidth: 1,
-          borderColor: '#ddd',
         },
         props?.style
       ]}

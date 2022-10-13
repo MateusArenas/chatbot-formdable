@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import { Animated, Easing } from 'react-native';
 
 import Loading from '../common/Loading';
 import Bubble from './Bubble';
@@ -7,8 +8,6 @@ import Img from './Image';
 import ImageContainer from './ImageContainer';
 import TextMessage from './TextMessage';
 import TextStepContainer from './TextStepContainer';
-
-import { Animated, Easing } from 'react-native'; 
 
 const defaultBotAvatar = require('../../../../assets/avatar-horiz.png');
 
@@ -110,8 +109,8 @@ const TextStep = props => {
                 style={[avatarWrapperStyle, 
                 { opacity: scaleAnim, transform: [{ scale: scaleAnim }] },  
                 { 
-                  alignSelf: 'center', bottom: 0, backgroundColor: 'tomato', 
-                  borderWidth: 0, position: 'absolute',
+                  alignSelf: 'center', bottom: 0, backgroundColor: '#0077ff', 
+                  position: 'absolute',
                 }, 
                 ]}
                 user={user}

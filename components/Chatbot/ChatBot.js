@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import Random from 'random-id';
 import React, { Component } from 'react';
-import { Dimensions, Keyboard, Platform, ScrollView, TextInput, Text, TouchableOpacity, View, Image } from 'react-native';
+import { Dimensions, Image, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
 const defaultBotAvatar = require('../../assets/avatar-horiz.png');
 
 import { TextInputMask } from 'react-native-masked-text'
@@ -80,9 +81,16 @@ const ChatBot = props => {
         loadingColor: customLoadingColor,
       };
       const defaultEventSettings = {
-        // replace: true,
+        user: false,
+        event: true,
         delay: customDelay,
         loadingColor: customLoadingColor,
+        delay: botDelay,
+        avatar: botAvatar,
+        bubbleColor: botBubbleColor,
+        fontColor: botFontColor,
+        optionBubbleColor: optionBubbleColor,
+        optionFontColor: optionFontColor
       };
   
       for (let i = 0, len = props.steps.length; i < len; i += 1) {
@@ -535,12 +543,12 @@ const ChatBot = props => {
                   <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Text style={{ fontSize: 14, fontWeight: '500' }}>{option?.label}</Text>
                     {currentStep?.multiple ? (
-                      <Checkbox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? 'blue' : 'black'} 
+                      <Checkbox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? '#0474fe' : 'black'} 
                         size={24}
                         marked={!!selecteds.find(selected => (selected === (option?.key || option?.value)))}
                       />
                     ) : (
-                      <Radiobox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? 'blue' : 'black'} 
+                      <Radiobox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? '#0474fe' : 'black'} 
                         size={24}
                         marked={!!selecteds.find(selected => (selected === (option?.key || option?.value)))}
                       />
@@ -549,7 +557,7 @@ const ChatBot = props => {
                 </TouchableOpacity>
               ))}
               <TouchableOpacity style={[
-                { flexGrow: 1, padding: 18, borderRadius: 20, backgroundColor: '#272527' },
+                { flexGrow: 1, padding: 18, borderRadius: 20, backgroundColor: '#0474fe' },
                 !selecteds.length && { opacity: .5 }
               ]}
                 disabled={!selecteds.length}
@@ -591,14 +599,17 @@ const ChatBot = props => {
             {...scrollViewProps}
           >
             <View style={{ flex: 1, alignItems: 'center', padding: 24, marginTop: 24, marginBottom: 24 }}>
-              <View style={{ width: 120, height: 120, backgroundColor: 'tomato', borderRadius: 120 }}>
+              <View style={{ width: 120, height: 120, backgroundColor: '#0077ff', borderRadius: 120, borderWidth: 1, borderColor: "rgba(0,0,0,.05)",  }}>
                 <Image source={defaultBotAvatar}
-                      style={{ width: '100%', height: '100%', transform: [{ scale: 1.15 }] }}
+                      style={{
+                         width: '100%', height: '100%', transform: [{ scale: 1.15 }],
+                         
+                      }}
                 />
               </View>
               <Text style={{ marginTop: 12, marginBottom: 4, fontWeight: 'bold', fontSize: 22 }}>Credinho</Text>
-              <Text style={{ fontWeight: '500', fontSize: 12, color: 'blue', opacity: .5 }}>Credauto</Text>
-              <Text style={{ marginTop: 12, fontWeight: '500', opacity: .8, fontSize: 12, textAlign: 'center' }}>Credinho é um robo que facilita a sua consulta em nosso sistema.</Text>
+              <Text style={{ fontWeight: '500', fontSize: 12, color: '#0079fa' }}>Credauto</Text>
+              <Text style={{ marginTop: 12, fontWeight: '500', opacity: .5, fontSize: 12, textAlign: 'center' }}>Credinho é um robo que facilita a sua consulta em nosso sistema.</Text>
             </View>
             {renderedSteps?.map((step, index) => (
               <RenderStep key={index} {...props}
@@ -623,7 +634,7 @@ const ChatBot = props => {
             >
               {(currentStep?.feature && currentStep?.options) ? (
                 <TouchableOpacity style={[
-                  { flexGrow: 1, padding: 18, borderRadius: 20, backgroundColor: '#272527' },
+                  { flexGrow: 1, padding: 18, borderRadius: 20, backgroundColor: '#0474fe' },
                 ]}
                   onPress={() => setModalVisible(true)}>
                   <Text style={{ textAlign: 'center', textTransform: 'uppercase', fontWeight: '500', fontSize: 14, color: 'white' }}>Selecionar</Text>
@@ -814,7 +825,16 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
         steps={steps}  renderedSteps={renderedSteps}
         style={customStyle}
         previousStep={previousStep}
+        previousValue={previousStep.value}
         triggerNextStep={triggerNextStep}
+        avatarStyle={avatarStyle}
+        avatarWrapperStyle={avatarWrapperStyle}
+        bubbleStyle={bubbleStyle}
+        userBubbleStyle={userBubbleStyle}
+        hideBotAvatar={hideBotAvatar}
+        hideUserAvatar={hideUserAvatar}
+        isFirst={isFirstPosition(step)}
+        isLast={isLastPosition(step)}
       />
     );
   }

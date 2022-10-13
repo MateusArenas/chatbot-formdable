@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Animated } from 'react-native';
+import { Animated, View } from 'react-native';
 
 const TextStepContainer = (props) => {
   return (
@@ -10,14 +10,14 @@ const TextStepContainer = (props) => {
           flexDirection: props.user ? 'row-reverse' : 'row',
           alignItems: 'flex-end',
           width: '100%',
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 1,
-          },
-          shadowOpacity: 0.10,
-          shadowRadius: 4.41,
-          elevation: 2,
+          // shadowColor: "#000",
+          // shadowOffset: {
+          //   width: 0,
+          //   height: 1,
+          // },
+          // shadowOpacity: 0.10,
+          // shadowRadius: 4.41,
+          // elevation: 2,
         },
         props.style
       ]}

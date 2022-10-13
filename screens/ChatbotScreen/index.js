@@ -3,18 +3,18 @@ import axios from 'axios';
 import { cnpj, cpf } from 'cpf-cnpj-validator';
 import React, { Component } from 'react';
 import { validate } from 'react-email-validator';
-import { Alert, Animated, ActivityIndicator, View ,Image} from 'react-native';
+import { ActivityIndicator, Alert, Animated, Image, View } from 'react-native';
 import { Linking, NativeModules, Platform, StatusBar } from 'react-native';
 import * as FeatherIcon from 'react-native-feather';
 
-
 import { BottomSheetModal } from '../../components/Chatbot/BottomSheetModal'
+import DotsLoading from '../../components/Chatbot/steps/common/DotsLoading'
 
 const { StatusBarManager } = NativeModules;
 
 const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
 
-import LoadingLastSession, { 
+import asyncLoadingLastSession, { 
   setLastSession, 
   clearLastSession, 
   RELOAD_LAST_SESSION_KEY 
@@ -38,9 +38,9 @@ const SimpleForm = () => {
         gradientColors: ['white', '#ece9e4', '#ece9e4'],
         gradientOpacitys: [1, .8, .8],
         optionFontColor: "#2c2a2a", optionBubbleColor: "#fafafa",
-        userFontColor: "#fafafa", userBubbleColor: "#272527",
-        botFontColor: "#2c2a2a", botBubbleColor: "#f6f6f6",
-        sendIconColor: "#2c2a2a",
+        userFontColor: "#fafafa", userBubbleColor: "#0073f2",
+        botFontColor: "#2c353e", botBubbleColor: "#fafafa",
+        sendIconColor: "#fafafa",
         footerBackgroundColor: '#f6f6f6',
         inputTextColor: '#2c2a2a',
         inputBackgroundColor: '#ffffff',
@@ -68,6 +68,7 @@ const SimpleForm = () => {
       })
     }
 
+
     return (
       <>
       <StatusBar barStyle="light-content"  backgroundColor="black" />
@@ -87,9 +88,9 @@ const SimpleForm = () => {
           optionBubbleColor={theme['light'].optionBubbleColor}
           botFontColor={theme['light'].botFontColor} 
           botBubbleColor={theme['light'].botBubbleColor} 
-          bubbleStyle={{ padding: 10, opacity: .8 }}
+          bubbleStyle={{ padding: 10, opacity: 1 }}
           submitButtonTextComponent={props => (
-            <FeatherIcon.Send style={{ opacity: .8}} 
+            <FeatherIcon.Send style={{ opacity: 1 }} 
               width={24} height={24} 
               color={theme['light'].sendIconColor} 
             />
@@ -100,13 +101,14 @@ const SimpleForm = () => {
           }}
           inputStyle={{ 
             backgroundColor: theme['light'].inputBackgroundColor, 
-            borderWidth: 1, borderColor: "rgba(0,0,0,.15)",
+            borderWidth: 1, borderColor: "rgba(0,0,0,.05)",
             borderRadius: 20, borderTopRightRadius: 0, borderBottomRightRadius: 0,
             color: theme['light'].inputTextColor, fontSize: 16, flex: 1,
             paddingLeft: 18,
           }}
           submitButtonStyle={{ 
-            backgroundColor: 'rgba(0,0,0,.1)', fontSize: 16,  
+            backgroundColor: "#0474fe", fontSize: 16,  
+            borderWidth: 1, borderColor: "white", borderLeftWidth: 0,
             borderRadius: 20, 
             borderTopLeftRadius: 0, borderBottomLeftRadius: 0,
             padding: 20, paddingLeft: 16,
@@ -128,33 +130,11 @@ const SimpleForm = () => {
             console.log({ step, overwrite: data?.overwrite });
           }}
           steps={[
-            // {
-            //   id: 'evento-teste',
-            //   waitAction: { 
-            //     text: <Image source={defaultBotAvatar}
-            //       style={{ width: 60, height: 60 }}
-            //     />,
-            //     delay: 100
-            //   },
-            //   replace: true,
-            //   event: async props => {
-            //     setTimeout(() => {
-            //       props?.triggerNextStep({});
-            //     }, 5000000000);
-            //   },
-            //   trigger: 'reload-last-session',
-            // },
             {
               id: 'reload-last-session',
-              waitAction: { 
-                text: bindMessagesWithEmoji(
-                  'Carregando sessão', 
-                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
-                ),
-                delay: 100
-              }, 
+              waitAction: true,
               replace: true,
-              component: <LoadingLastSession />,
+              event: props => asyncLoadingLastSession(props),
               trigger: 'initialize',
             },
             {
@@ -412,14 +392,9 @@ const SimpleForm = () => {
             },
             {
               id: 'andress',
-              waitAction: { 
-                text: bindMessagesWithEmoji(
-                  'Carregando campos', 
-                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
-                ),
-                delay: 100
-              }, 
-              component: <LoadingAnddress />,
+              replace: true,
+              waitAction: true, 
+              event: LoadingAnddress,
               trigger: 'number-quest',
             },
             //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
@@ -676,14 +651,9 @@ const SimpleForm = () => {
             },
             {
               id: 'andress-reload',
-              waitAction: { 
-                text: bindMessagesWithEmoji(
-                  'Carregando campos', 
-                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
-                ),
-                delay: 100
-              }, 
-              component: <LoadingAnddress />,
+              waitAction: true, 
+              event: LoadingAnddress,
+              replace: true,
               trigger: '7',
             },
             {
@@ -734,25 +704,13 @@ const SimpleForm = () => {
             },
             {
               id: 'captcha',
-              waitAction: { 
-                text: bindMessagesWithEmoji(
-                  'Carregando CAPTCHA', 
-                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
-                ),
-                delay: 100
-              }, 
+              waitAction: true, 
               component: <CaptchaComponent />,
               trigger: 'submit-data',
             },
             {
               id: 'submit-data',
-              waitAction: { 
-                text: bindMessagesWithEmoji(
-                  'Enviando dados', 
-                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
-                ),
-                delay: 100
-              }, 
+              waitAction: true, 
               component: <SubmitDataAction />,
               trigger: 'completed-message',
             },
@@ -765,20 +723,14 @@ const SimpleForm = () => {
               id: 'submit-data-failure-action',
               inputAttributes: { placeholder: "Escolha uma opção" },
               options: [
-                { key: "1", label: 'Tentar novamente', trigger: 'submit-data' },
+                { key: "1", label: 'Tentar novamente', trigger: 'captcha' },
                 { key: "2", label: 'Revisar campos', trigger: 'review-init' },
                 { key: "3", label: 'Entrar em contato', trigger: 'rca-whatsapp' },
               ],
             },
             {
               id: 'rca-whatsapp',
-              waitAction: { 
-                text: bindMessagesWithEmoji(
-                  'Abrindo conversa', 
-                  ["🕐", "🕒", "🕔", "🕗", "🕘", "🕚", "🕛"]
-                ),
-                delay: 100
-              }, 
+              waitAction: true, 
               component: (
                 <ContactWhatsappAction phone={"5511963763329"} text={"oi"} />
               ),

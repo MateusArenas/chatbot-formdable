@@ -10,8 +10,8 @@ const Review = (props) => {
 
   return (
     <>
-      <Text style={{ color: 'white', opacity: .9, fontSize: 16 }}>{props.title+'\n\n'}</Text>
-      <Text style={{ color: 'white', opacity: .9, fontSize: 16 }}>{text.substring(0, text.length - 2)}</Text>
+      <Text style={{ color: '#2c353e', opacity: .9, fontSize: 16 }}>{props.title+'\n\n'}</Text>
+      <Text style={{ color: '#2c353e', opacity: .9, fontSize: 16 }}>{text.substring(0, text.length - 2)}</Text>
     </>
   )
 }

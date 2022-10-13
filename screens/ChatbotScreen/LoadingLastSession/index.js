@@ -27,29 +27,27 @@ export async function setLastSession ({ step, overwrite: newOverwrite }) {
   }
 }
 
-const LoadingLastSession = props => {
-  React.useEffect(() => {
-    AsyncStorage.getItem(STORAGE_CHATBOT_KEY).then(storageValue => {
-      if (storageValue) {
-        const defaultData = JSON.parse(storageValue);
+const asyncLoadingLastSession = async props => {
+    const storageValue = await AsyncStorage.getItem(STORAGE_CHATBOT_KEY);
 
-        const { overwrite, lastTrigger } = defaultData;
+    if (storageValue) {
+      const defaultData = JSON.parse(storageValue);
 
-        props.triggerNextStep({ 
-          defaultTrigger: '7',
-          overwrite: {
-            ...overwrite,
-            ['lastTrigger']: lastTrigger
-          },
-          trigger: RELOAD_LAST_SESSION_KEY
-        });
-      } else {
-        props.triggerNextStep({ trigger: 'initialize' });
-      }
-    });
-  }, [])
+      const { overwrite, lastTrigger } = defaultData;
 
-  return null;
+      props.triggerNextStep({ 
+        defaultTrigger: '7',
+        overwrite: {
+          ...overwrite,
+          ['lastTrigger']: lastTrigger
+        },
+        trigger: RELOAD_LAST_SESSION_KEY
+      });
+    } else {
+
+      props.triggerNextStep({});
+
+    }
 }
 
-export default React.memo(LoadingLastSession);
+export default asyncLoadingLastSession;

@@ -6,10 +6,9 @@ const OptionElement = (props) => {
     <Text {...props} 
       style={[
         {
-          color: props.fontColor,
+          color: "#0076fa" || props.fontColor,
           fontSize: 14,
           fontWeight: '500', 
-          opacity: .8
         },
         props?.style
       ]}
