@@ -32,9 +32,9 @@ const SubmitDataAction = props => {
     //transform obj in formdata and check if false value for filter.
     Object.keys(obj).forEach(key => obj[key] && bodyFormData.append(key, obj[key]))
 
-    // api.post('/cadastro', bodyFormData, { 
-      //     headers: { "Content-Type": "multipart/form-data" }
-      // })
+        // api.post('/cadastro', bodyFormData, { 
+        //     headers: { "Content-Type": "multipart/form-data" }
+        // })
         axios({
           method: 'post',
           url: 'http://10.0.2.2/credconsultas_api/cadastro',
@@ -47,14 +47,14 @@ const SubmitDataAction = props => {
         .then(({ data }) => {
             console.log({ res: data });
             if (data?.warning || !data?.success) {
-                    props.triggerNextStep({ trigger: 'submit-data-failure-message' });
+              props.triggerNextStep({ trigger: 'submit-data-failure-message' });
             } else if (data?.success) {
-                    clearLastSession();
-                    props.triggerNextStep({});
+              clearLastSession();
+              props.triggerNextStep({});
             }
         }).catch(err => {
-                console.log({ err });
-                props.triggerNextStep({ trigger: 'submit-data-failure-message' });
+            console.log({ err });
+            props.triggerNextStep({ trigger: 'submit-data-failure-message' });
         });
 }
 

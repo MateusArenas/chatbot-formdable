@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Animated, Easing, Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 
 import Loading from '../common/Loading';
 import Bubble from './Bubble';
@@ -9,7 +8,9 @@ import ImageContainer from './ImageContainer';
 import TextMessage from './TextMessage';
 import TextStepContainer from './TextStepContainer';
 
-const defaultBotAvatar = require('../../../../assets/avatar-horiz.png');
+import { Animated, Easing, Image } from 'react-native'; 
+
+const defaultBotAvatar = require('../../../../assets/avatar-horiz-min.png');
 
 const TextStep = props => {
   /* istanbul ignore next */
@@ -51,7 +52,8 @@ const TextStep = props => {
     const showAvatar = user ? !hideUserAvatar : !hideBotAvatar;
 
     const pushAnim = React.useRef(new Animated.Value(-180)).current
-    const [contentSizeY, setContentSizeY] = React.useState(0);
+    const scaleAnim = React.useRef(new Animated.Value(0)).current
+    const [contentSizeY, setContentSizeY] = React.useState(0.2);
 
     React.useEffect(() => {
       if (contentSizeY && loading) {
@@ -68,31 +70,34 @@ const TextStep = props => {
       }
     }, [pushAnim, contentSizeY, loading])
 
-    const [loadImage, setLoadImage] = React.useState(false);
-    const scaleAnim = React.useRef(new Animated.Value(0)).current
+    const [loadingIMG, setLoadingIMG] = React.useState(true);
 
     React.useEffect(() => {
-      if (loadImage && !loading) {
+      if (!loading && !loadingIMG) {
         Animated.timing(
           scaleAnim,
           {
             toValue: 1,
             duration: step.delay/2,
             useNativeDriver: false,
-            easing: Easing.cubic 
+            easing: Easing.bounce 
           }
         ).start();
       }
-    }, [loadImage, scaleAnim, loading])
+    }, [scaleAnim, loading, loadingIMG])
 
-    const lastStepBotKey = [...props?.renderedSteps]?.reverse().find(step => 
-      ( !step?.user && (step?.message || step?.asMessage) ) 
-    )?.key;
-
+    const lastStepBotId = Object.keys(steps).reverse().find(key => 
+      (
+        !steps?.[key]?.user && steps?.[key]?.message
+      )
+    );
 
     return (
       <>
-        <TextStepContainer style={{ bottom: pushAnim, position: 'relative', alignItems: 'center' }}
+        <TextStepContainer style={[
+          { bottom: pushAnim }, 
+          { position: 'relative', alignItems: 'center' }
+        ]}
           onLayout={e => {
             !contentSizeY && setContentSizeY(e.nativeEvent.layout.height)
           }} 
@@ -101,22 +106,23 @@ const TextStep = props => {
           >
             {
               (
-                (lastStepBotKey === step.key) 
+                lastStepBotId === step.id 
                 && showAvatar
               ) &&
-              <ImageContainer 
+              <ImageContainer
                 className="rsc-ts-image-container"
                 borderColor={bubbleColor}
-                style={[avatarWrapperStyle, 
-                { opacity: scaleAnim, transform: [{ scale: scaleAnim }] },  
-                { 
-                  alignSelf: 'center', bottom: 0, backgroundColor: '#0077ff', 
-                  position: 'absolute',
-                }, 
+                style={[
+                  avatarWrapperStyle, 
+                  { transform: [{ scale: scaleAnim }] },
+                  { 
+                    alignSelf: 'center', bottom: 0, backgroundColor: 'tomato', 
+                    borderWidth: 0, position: 'absolute',
+                  }
                 ]}
                 user={user}
               >
-                <Img onLoadEnd={() => setLoadImage(true)}
+                <Img onLoadEnd={() => setLoadingIMG(false)}
                   className="rsc-ts-image"
                   style={[avatarStyle, { transform: [{ scale: 1.25 }] }]}
                   showAvatar={showAvatar}
@@ -175,7 +181,7 @@ export default  React.memo(TextStep);
 
 const RenderMessage = React.memo(props => {
   const { previousValue, step } = props;
-  const { component, link } = step;
+  const { component } = step;
   let { message } = step;
 
   if (component) {
@@ -188,29 +194,7 @@ const RenderMessage = React.memo(props => {
     });
   }
 
-  const links = message?.match?.(/{link:(.*?)}/);
-
   message = message?.replace?.(/{previousValue}/g, previousValue) || "";
-
-  if (links?.length) {
-  
-    const [previous, lasteds] = message?.split?.(/{link:.*}/g);
-
-    return (
-      <Text>
-        {previous}
-        <TouchableWithoutFeedback onPress={() => link?.(links?.[1])}>
-          <Text style={{ color: "#0076fa" }}>{links?.[1]}</Text>
-        </TouchableWithoutFeedback >
-        {lasteds}
-      </Text>
-    );
-  }
-
-  //text.split(/{link:.*}/g)
-
-  //text.match(/(?<={link:).*?(?=})/g)
-
 
   return message;
 })

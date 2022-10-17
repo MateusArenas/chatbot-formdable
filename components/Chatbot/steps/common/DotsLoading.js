@@ -33,7 +33,7 @@ const DotLoading = ({ delay=100, color="black", onFinish, init, ...props}) => {
 
   React.useEffect(() => {
     const listener =  circleRadius?.addListener?.( (circleRadius) => {
-      circleRef?.current?.setNativeProps?.({ r: circleRadius.value.toString(), opacity: circleRadius.value/3 });
+      circleRef?.current?.setNativeProps?.({ r: circleRadius.value.toString(), opacity: circleRadius.value/5 });
     });
 
     return () => circleRadius.removeListener(listener);
@@ -43,8 +43,8 @@ const DotLoading = ({ delay=100, color="black", onFinish, init, ...props}) => {
   const bubblesSetAnimated = (value=0, callback) => {
     Animated?.timing?.(circleRadius, { 
       toValue: value, 
-      duration: 300,
-      delay: value ? 0 : 150,
+      duration: 400,
+      delay: value ? 0 : 250,
       easing: Easing.elastic(1),
       useNativeDriver: false 
     } ).start(({ finished  }) => finished && callback?.());
@@ -53,7 +53,7 @@ const DotLoading = ({ delay=100, color="black", onFinish, init, ...props}) => {
   React.useEffect(() => {
     // const interval = setInterval( () => {
       if (init) {
-        bubblesSetAnimated(3, () => {
+        bubblesSetAnimated(5, () => {
           onFinish()
           bubblesSetAnimated(0)
         });

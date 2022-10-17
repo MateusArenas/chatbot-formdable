@@ -235,12 +235,15 @@ const ChatBot = props => {
     if (currentStep?.id === data?.trigger) {
       return;
     }
+
+    const previousStepUpdate = steps[getTriggeredStep(previousStep?.trigger, previousStep?.value)];
     
     if (data?.id) {
       currentStep = Object.assign({}, steps[data?.id]);
+      if (previousStepUpdate?.update) {
+        currentStep.trigger = previousStepUpdate?.trigger; 
+      }
     }
-
-    console.log({ data });
 
     const isEnd = currentStep?.end;
 
@@ -633,7 +636,11 @@ const ChatBot = props => {
                                 <Text style={{ fontSize: 16, fontWeight: '500' }}>{option?.label}</Text>
                                 {!!option?.field && (
                                   <Text style={{ fontSize: 14, marginTop: 4, fontWeight: '500', opacity: .5 }}>
-                                    {state?.previousSteps.find(step => step.id === option?.field)?.value || "Não informado."}
+                                    { 
+                                      Array.isArray(state?.previousSteps.find(step => step.id === option?.field)?.value) ?
+                                      state?.previousSteps.find(step => step.id === option?.field)?.value?.join(" + ")
+                                      : state?.previousSteps.find(step => step.id === option?.field)?.value
+                                    || "Não informado."}
                                   </Text>
                                 )}
                               </View>
