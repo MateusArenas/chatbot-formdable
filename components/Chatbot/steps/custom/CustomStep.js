@@ -1,10 +1,9 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import { Animated, Easing } from 'react-native';
 
 import Loading from '../common/Loading';
 import CustomStepContainer from './CustomStepContainer';
-
-import { Animated, Easing } from 'react-native';
 
 const CustomStep = props => {
   const [loading, setLoading] = React.useState(true);

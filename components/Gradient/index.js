@@ -6,9 +6,10 @@ const Gradient = ({
     colors=['rgb(255, 255, 255)', 'rgb(0,102,84)'], 
     opacitys=[1, 1],
     children,
+    style,
 }) => {
     return (
-        <View style={ { flex: 1 } } >
+        <View style={[ { flex: 1 }, style ]} >
             <Svg height="100%" width="100%" style={ StyleSheet.absoluteFillObject }>
                 <Defs>
                     <LinearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">

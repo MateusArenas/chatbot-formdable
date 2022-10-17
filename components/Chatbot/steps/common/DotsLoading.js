@@ -1,10 +1,12 @@
+import { func } from "prop-types";
 import * as React from "react"
 import { Animated, Easing, View } from "react-native"
-import Svg, { Circle, Path } from "react-native-svg"
+import Svg, { Circle } from "react-native-svg"
 
 const AnimatedCircle  = Animated.createAnimatedComponent(Circle);
 
-function DotsLoading ({ color="#272527", size="" }) {
+function DotsLoading ({ color="#272527", size=3  }) {
+  const [index, setIndex] = React.useState(0);
 
   return (
     <View 
@@ -12,19 +14,19 @@ function DotsLoading ({ color="#272527", size="" }) {
         transform: [{ scale: 1 }],
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', 
         width: 50,  opacity: .5,
-        // backgroundColor: 'red'
-        // alignSelf: 'center', marginTop: 100 
       }}
     >
-      {[0,0,0].map((_, index) => (
-        <DotLoading key={index} color={color} delay={120*(index+1)}/>
+      {(new Array(size).fill(null)).map((_, i) => (
+        <DotLoading key={i} color={color} init={i === index}
+          onFinish={() => setIndex(index => (index < (size-1)) ? (index+1) : 0)}
+        />
       ))}
     </View>
   )
 }
 
 
-const DotLoading = ({ delay=100, color="black", ...props}) => {
+const DotLoading = ({ delay=100, color="black", onFinish, init, ...props}) => {
   
   const circleRadius = React.useRef(new Animated.Value(0)).current
   const circleRef = React.useRef(null);
@@ -36,18 +38,30 @@ const DotLoading = ({ delay=100, color="black", ...props}) => {
 
     return () => circleRadius.removeListener(listener);
   }, [circleRadius, circleRef])
+
+
+  const bubblesSetAnimated = (value=0, callback) => {
+    Animated?.timing?.(circleRadius, { 
+      toValue: value, 
+      duration: 300,
+      delay: value ? 0 : 150,
+      easing: Easing.elastic(1),
+      useNativeDriver: false 
+    } ).start(({ finished  }) => finished && callback?.());
+  }
   
   React.useEffect(() => {
-    const interval = setInterval( () => {
-      Animated?.spring?.(circleRadius, { 
-        toValue: 3, 
-        friction: 3,
-        useNativeDriver: false 
-      } ).start(() => circleRadius?.setValue?.(0));
-    }, 400+delay)
+    // const interval = setInterval( () => {
+      if (init) {
+        bubblesSetAnimated(3, () => {
+          onFinish()
+          bubblesSetAnimated(0)
+        });
+      }
+    // }, 600+delay)
 
-    return () => clearInterval(interval);
-  }, [circleRadius])
+    // return () => clearInterval(interval);
+  }, [circleRadius, init])
 
   return (
     <Svg 

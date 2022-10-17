@@ -3,7 +3,7 @@ import axios from 'axios';
 import { cnpj, cpf } from 'cpf-cnpj-validator';
 import React, { Component } from 'react';
 import { validate } from 'react-email-validator';
-import { ActivityIndicator, Alert, Animated, Image, View } from 'react-native';
+import { ActivityIndicator, Alert, Animated, Image, TouchableOpacity, View } from 'react-native';
 import { Linking, NativeModules, Platform, StatusBar } from 'react-native';
 import * as FeatherIcon from 'react-native-feather';
 
@@ -59,15 +59,6 @@ const SimpleForm = () => {
       // }
     };
 
-    function bindMessagesWithEmoji (text, emojis) {
-      let count = 1;
-      return emojis.map(emoji => {
-        if (count < 3) count++;
-        else count = 1;
-        return `${emoji} ${text} ${'.'.repeat(count)}`
-      })
-    }
-
 
     return (
       <>
@@ -81,7 +72,24 @@ const SimpleForm = () => {
             keyboardAppearance: 'light'
           }}
           // hideBotAvatar 
-          hideHeader hideUserAvatar 
+          // headerComponent={
+          //   <View style={{ 
+          //     height: 80, width: "100%", backgroundColor: 'gray',
+          //     alignItems: 'flex-end', justifyContent: 'space-between',
+          //   }}
+          //   >
+          //     <View style={{ flex: 1, padding: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'red' }}>
+          //       <TouchableOpacity onPress={() => {}}>
+          //         <FeatherIcon.MessageCircle 
+          //             width={24} height={24} 
+          //             color={theme['light'].sendIconColor} 
+          //         />
+          //       </TouchableOpacity>
+          //     </View>
+          //   </View>
+          // }
+          hideHeader={false} 
+          hideUserAvatar 
           userFontColor={theme['light'].userFontColor} 
           userBubbleColor={theme['light'].userBubbleColor}
           optionFontColor={theme['light'].optionFontColor} 
@@ -125,9 +133,9 @@ const SimpleForm = () => {
           }}
           contentStyle={{ backgroundColor: 'transparent', borderBottom: 0, padding: 12 }}
           keyboardVerticalOffset={0}
-          handleStep={(step, data) => {
-            setLastSession({ step, overwrite: data?.overwrite })
-            console.log({ step, overwrite: data?.overwrite });
+          handleStep={({ step, data, ...props }) => {
+            setLastSession({ step, overwrite: data?.overwrite, ...props })
+            // console.log({ step, overwrite: data?.overwrite });
           }}
           steps={[
             {
@@ -144,12 +152,13 @@ const SimpleForm = () => {
             },
             {
               id: 'reload-last-session-require',
+              title: 'Deseja continuar com os dados anteriores ou iniciar uma nova consulta?',
               inputAttributes: {
                 placeholder: "Escolha uma opção",
               },
               options: [
-                { key: "1", label: 'Continuar', trigger: ({ steps }) => steps['lastTrigger']?.value },
-                { key: "2", label: 'Refazer', trigger: 'initialize' },
+                { key: "1", label: 'Refazer', trigger: 'initialize' },
+                { key: "2", label: 'Continuar', trigger: ({ steps }) => steps['lastTrigger']?.value, primary: true },
               ],
             },
             {
@@ -167,6 +176,29 @@ const SimpleForm = () => {
               message: 'Qual é o seu nome?',
               trigger: 'name',
             },
+            { /////                      TESTE
+              id: 'changes',
+              title: 'Qual campo você quer mudar?',
+              feature: true,
+              options: [
+                { key: '1', label: 'Name*', field: "name", trigger: "update-name" },
+                { key: '2', label: 'Email*', field: "email", trigger: "update-email"  },
+                { key: '3', label: 'Nome Fantasia*', field: "fantasyName", trigger: "update-fantasyName"  },
+                { key: '4', label: 'Razão Social*', field: "socialReason", trigger: "update-socialReason"  },
+                { key: '5', label: 'Tipo de Produto*', field: "product", trigger: "update-product"  },
+                { key: '6', label: 'CNPJ*', field: "cnpj", trigger: "update-cnpj"  },
+                { key: '7', label: 'Telefone*', field: "cell", trigger: "update-cell"  },
+                { key: '8', label: 'Telefone (2)', field: "cell", trigger: "update-phone"  },
+
+                { key: '9', label: "CEP*", field: "cep", trigger: "update-cep" }, 
+                { key: '10', label: 'Estado*', field: "state", trigger: 'update-state' },
+                { key: '11', label: 'Cidade*', field: "city", trigger: 'update-city' },
+                { key: '12', label: 'Bairro*', field: "district", trigger: 'update-district' },
+                { key: '13', label: 'Logradouro*', field: "street", trigger: 'update-street' },
+                { key: '14', label: 'Número*', field: "number", trigger: 'update-number' },
+                { key: '15', label: "Complemento", field: "complement", trigger: "update-complement" }, 
+              ],
+            }, ///                      TESTE FIM
             {
               id: 'name',
               user: true,
@@ -267,8 +299,8 @@ const SimpleForm = () => {
                 placeholder: "Escolha uma opção",
               },
               options: [
-                { key: "1", label: 'Sim', trigger: 'phone-quest' },
-                { key: "2", label: 'Não', trigger: 'socialReason-quest' },
+                { key: "1", label: "Não", trigger: 'socialReason-quest' },
+                { key: "2", label: "Sim", trigger: 'phone-quest', primary: true },
               ],
             },
             {
@@ -387,7 +419,7 @@ const SimpleForm = () => {
             },
             { 
               id: 'cep-failure',
-              message: 'CEP não encontrado, porfavor insira um cep existente.',
+              message: 'CEP não encontrado, porfavor insira um válido.',
               trigger: 'update-cep',
             },
             {
@@ -433,8 +465,8 @@ const SimpleForm = () => {
             {
               id: 'complement-require',
               options: [
-                { key: '1', label: 'Sim', trigger: 'complement-quest' },
-                { key: '2', label: 'Não', trigger: '7' },
+                { key: '1', label: "Não", trigger: '7' },
+                { key: '2', label: "Sim", trigger: 'complement-quest', primary: true },
               ],
             },
             {
@@ -457,94 +489,64 @@ const SimpleForm = () => {
             {
               id: '7',
               message: 'Vamos lá falta pouco! 😉',
-              trigger: 'review-init',
-            },
-            //aqui
-            {
-              id: 'review-init',
-              component: <DataReview title={'Dados Principais 📄'} fields={[
-                { label: "Nome", value: "name" }, 
-                { label: "Email", value: "email" }, 
-                { label: "Nome Fantasia", value: "fantasyName" }, 
-                { label: "Razão Social", value: "socialReason" }, 
-                { label: "Tipo de Produto", value: "product" }, 
-                { label: "CNPJ", value: "cnpj" }, 
-                { label: "Telefone", value: "cell" }, 
-                { label: "Telefone (2)", value: "phone" }, 
-              ]} />,
-              asMessage: true,
               trigger: 'update-init',
             },
             {
               id: 'update-init',
-              message: 'Deseja atualizar algum campo ou continuar? 🆙',
+              message: 'Deseja atualizar algum campo ou continuar?',
               trigger: 'update-init-question',
             },
             {
               id: 'update-init-question',
               options: [
-                { key: '1', label: 'Atualizar', trigger: 'update-init-yes' },
-                { key: '2', label: 'Continuar', trigger: 'review' },
+                { key: '1', label: 'Atualizar', trigger: 'changes', freeze: true },
+                { key: '2', label: 'Continuar', trigger: 'end-message', primary: true },
               ],
             },
-            {
-              id: 'update-init-yes',
-              message: 'Qual campo deseja atualizar?',
-              trigger: 'update-init-fields',
-            },
-            //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
-            {
-              id: 'update-init-fields',
-              options: [
-                { key: '1', label: 'Nome*', trigger: 'update-name' },
-                { key: '2', label: 'Email*', trigger: 'update-email' },
-                { key: '3', label: 'Nome Fantasia*', trigger: 'update-fantasyName' },
-                { key: '4', label: 'Razão Social*', trigger: 'update-socialReason' },
-                { key: '5', label: 'Tipo de Produto*', trigger: 'update-product' },
-                { key: '6', label: 'CNPJ*', trigger: 'update-cnpj' },
-                { key: '7', label: 'Telefone*', trigger: 'update-cell' },
-                { key: '8', label: 'Telefone (2)', trigger: 'update-phone' },
-              ],
-            },
+            // {
+            //   id: 'update-init-yes',
+            //   message: 'Qual campo deseja atualizar?',
+            //   trigger: 'update-init-fields',
+            // },
             {
               id: 'update-name',
               update: 'name',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             {
               id: 'update-email',
               update: 'email',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             {
               id: 'update-fantasyName',
               update: 'fantasyName',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             {
               id: 'update-socialReason',
               update: 'socialReason',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             {
               id: 'update-product',
               update: 'product',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             {
               id: 'update-cnpj',
               update: 'cnpj',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             {
               id: 'update-cell',
               update: 'cell',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             {
               id: 'update-phone',
               update: 'phone',
-              trigger: 'review-init',
+              trigger: 'update-init',
             },
             //fim aqui
             //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
@@ -559,7 +561,7 @@ const SimpleForm = () => {
                 } 
                 return true;
               },
-              trigger: 'update',
+              trigger: 'update-init',
             },
             {
               id: 'district',
@@ -571,7 +573,7 @@ const SimpleForm = () => {
                 return true;
               },
               user: true,
-              trigger: 'update',
+              trigger: 'update-init',
             },
             {
               id: 'street',
@@ -583,52 +585,13 @@ const SimpleForm = () => {
                 return true;
               },
               user: true,
-              trigger: 'update',
+              trigger: 'update-init',
             },
-            {
-              id: 'review',
-              component: <DataReview title={'Dados de Localização 📍'} fields={[
-                { label: "CEP", value: "cep" }, 
-                { label: "Estado", value: "state" }, 
-                { label: "Cidade", value: "city" }, 
-                { label: "Bairro", value: "district" }, 
-                { label: "Logradouro", value: "street" }, 
-                { label: "Número", value: "number" }, 
-                { label: "Complemento", value: "complement" }, 
-              ]} />,
-              asMessage: true,
-              trigger: 'update',
-            },
-            {
-              id: 'update',
-              message: 'Deseja atualizar algum campo ou continuar? 🆙',
-              trigger: 'update-question',
-            },
-            {
-              id: 'update-question',
-              options: [
-                { key: '1', label: 'Atualizar', trigger: 'update-yes' },
-                { key: '2', label: 'Continuar', trigger: 'end-message' },
-              ],
-            },
-            {
-              id: 'update-yes',
-              message: 'Qual campo deseja atualizar? 🆙',
-              trigger: 'update-fields',
-            },
-            //state: 'SP', city: 'MAUÁ', district: 'JARDIM MARIA ENEIDA', street: "RUA ANTÔNIA DE OLIVEIRA"
-            {
-              id: 'update-fields',
-              options: [
-                { key: '1', label: "CEP*", trigger: "update-cep" }, 
-                { key: '2', label: 'Estado*', trigger: 'update-state' },
-                { key: '3', label: 'Cidade*', trigger: 'update-city' },
-                { key: '4', label: 'Bairro*', trigger: 'update-district' },
-                { key: '5', label: 'Logradouro*', trigger: 'update-street' },
-                { key: '6', label: 'Número*', trigger: 'update-number' },
-                { key: '7', label: "Complemento", trigger: "update-complement" }, 
-              ],
-            },
+            // {
+            //   id: 'update-yes',
+            //   message: 'Qual campo deseja atualizar? 🆙',
+            //   trigger: 'update-fields',
+            // },
             {
               id: 'update-cep',
               update: 'cep',
@@ -639,14 +602,14 @@ const SimpleForm = () => {
             },
             {
               id: 'andress-update-fields-quest',
-              message: 'Deseja atualizar (estado, cidade, bairro, rua, número e complemento) com base no CEP: {previousValue} ? 🔄🆙',
+              message: 'Deseja atualizar os campos de endereço com base no CEP {previousValue} ?',
               trigger: 'andress-update-fields-require',
             },
             {
               id: 'andress-update-fields-require',
               options: [
-                { key: '1', label: 'Sim', trigger: 'andress-reload' },
-                { key: '2', label: 'Não', trigger: '7' },
+                { key: '1', label: "Não", trigger: '7' },
+                { key: '2', label: "Sim", trigger: 'andress-reload', primary: true },
               ],
             },
             {
@@ -664,7 +627,7 @@ const SimpleForm = () => {
             {
               id: 'state',
               options: allStates.map(state => ({
-                value: state, label: state, trigger: 'update'
+                value: state, label: state, trigger: 'update-init'
               })),
             },
             {
@@ -694,49 +657,57 @@ const SimpleForm = () => {
             },
             {
               id: 'end-message',
-              message: 'Agora confirme que você não é um Robô 🤖',
+              message: 'Resolva o captcha para avançar',
               trigger: 'captcha',
             },
             {
               id: 'captcha-failure',
-              message: 'Porfavor resolva o CAPTCHA para avançar.',
+              message: 'Porfavor resolva o captcha para avançar.',
               trigger: 'end-message',
             },
             {
               id: 'captcha',
               waitAction: true, 
+              replace: true,
               component: <CaptchaComponent />,
+              trigger: 'captcha-completed',
+            },
+            {
+              id: 'captcha-completed',
+              message: 'Ok você não é um robô.\npodemos continuar',
               trigger: 'submit-data',
             },
             {
               id: 'submit-data',
               waitAction: true, 
-              component: <SubmitDataAction />,
+              replace: true,
+              event: SubmitDataAction,
               trigger: 'completed-message',
             },
             {
               id: 'submit-data-failure-message',
-              message: 'Não foi possível enviar os seus dados, tente mais tarde ou entre em contato conosco.\n+55 (11) 96376-3329 📞',
+              link: value => ContactWhatsappAction("5511963763329", "oi"),
+              message: 'Não foi possível enviar os seus dados, tente mais tarde ou entre em contato conosco.\n{link:+55 (11) 96376-3329}',
               trigger: 'submit-data-failure-action',
             },
             {
               id: 'submit-data-failure-action',
               inputAttributes: { placeholder: "Escolha uma opção" },
               options: [
-                { key: "1", label: 'Tentar novamente', trigger: 'captcha' },
-                { key: "2", label: 'Revisar campos', trigger: 'review-init' },
-                { key: "3", label: 'Entrar em contato', trigger: 'rca-whatsapp' },
+                { key: "1", label: 'Revisar campos', trigger: 'update-init' },
+                { key: "2", label: 'Tentar novamente', trigger: 'captcha', primary: true },
+                // { key: "3", label: 'Entrar em contato', trigger: 'rca-whatsapp' },
               ],
             },
-            {
-              id: 'rca-whatsapp',
-              waitAction: true, 
-              component: (
-                <ContactWhatsappAction phone={"5511963763329"} text={"oi"} />
-              ),
-              replace: true,
-              trigger: 'submit-data-failure-message',
-            },
+            // {
+            //   id: 'rca-whatsapp',
+            //   waitAction: true, 
+            //   // component: (
+            //   //   <ContactWhatsappAction phone={"5511963763329"} text={"oi"} />
+            //   // ),
+            //   replace: true,
+            //   trigger: 'submit-data-failure-message',
+            // },
             {
               id: 'completed-message',
               message: 'Obrigado! Seus dados foram enviados com sucesso! 🎉',

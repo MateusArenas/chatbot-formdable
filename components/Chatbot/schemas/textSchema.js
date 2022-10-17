@@ -10,6 +10,11 @@ export default [
     required: true,
   },
   {
+    key: 'link',
+    types: ['function'],
+    required: false,
+  },
+  {
     key: 'avatar',
     types: ['string'],
     required: false,

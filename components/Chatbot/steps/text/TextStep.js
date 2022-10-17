@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Animated, Easing } from 'react-native';
+import { Animated, Easing, Text, TouchableNativeFeedback, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 
 import Loading from '../common/Loading';
 import Bubble from './Bubble';
@@ -72,7 +72,7 @@ const TextStep = props => {
     const scaleAnim = React.useRef(new Animated.Value(0)).current
 
     React.useEffect(() => {
-      if (loadImage) {
+      if (loadImage && !loading) {
         Animated.timing(
           scaleAnim,
           {
@@ -83,11 +83,12 @@ const TextStep = props => {
           }
         ).start();
       }
-    }, [loadImage, scaleAnim])
+    }, [loadImage, scaleAnim, loading])
 
-    const lastStepBotId = [...props?.renderedSteps]?.reverse().find(step => 
-      ( !step?.user && (step?.message || step?.asMessage) )
-    )?.id;
+    const lastStepBotKey = [...props?.renderedSteps]?.reverse().find(step => 
+      ( !step?.user && (step?.message || step?.asMessage) ) 
+    )?.key;
+
 
     return (
       <>
@@ -100,7 +101,7 @@ const TextStep = props => {
           >
             {
               (
-                lastStepBotId === step.id 
+                (lastStepBotKey === step.key) 
                 && showAvatar
               ) &&
               <ImageContainer 
@@ -174,7 +175,7 @@ export default  React.memo(TextStep);
 
 const RenderMessage = React.memo(props => {
   const { previousValue, step } = props;
-  const { component } = step;
+  const { component, link } = step;
   let { message } = step;
 
   if (component) {
@@ -187,7 +188,29 @@ const RenderMessage = React.memo(props => {
     });
   }
 
+  const links = message?.match?.(/{link:(.*?)}/);
+
   message = message?.replace?.(/{previousValue}/g, previousValue) || "";
+
+  if (links?.length) {
+  
+    const [previous, lasteds] = message?.split?.(/{link:.*}/g);
+
+    return (
+      <Text>
+        {previous}
+        <TouchableWithoutFeedback onPress={() => link?.(links?.[1])}>
+          <Text style={{ color: "#0076fa" }}>{links?.[1]}</Text>
+        </TouchableWithoutFeedback >
+        {lasteds}
+      </Text>
+    );
+  }
+
+  //text.split(/{link:.*}/g)
+
+  //text.match(/(?<={link:).*?(?=})/g)
+
 
   return message;
 })

@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableWithoutFeedback } from 'react-native';
-
+import { Text, TouchableWithoutFeedback, View } from 'react-native';
 import WebView from 'react-native-webview';
 
 const LANGUAGE = 'pt-BR';

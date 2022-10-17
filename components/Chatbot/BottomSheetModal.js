@@ -56,6 +56,10 @@ const BottomSheetModal = props => {
         <TouchableWithoutFeedback onPress={() => handleDismiss()} >
           <View style={styles.overlay} >
             <Animated.View style={[styles.container, {top}]}  {...panResponders.panHandlers} >
+              <View style={[
+                { width: 50, height: 8, borderRadius: 10, alignSelf: 'center', margin: 12 },
+                { position: 'absolute', backgroundColor: 'rgba(0,0,0,.1)' }
+              ]}/>
               {props.children}
             </Animated.View>
           </View>
@@ -71,13 +75,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    width: '100%',
+    width: '100%', 
     backgroundColor: 'white',
     padding: 22,
     paddingTop: 32, 
     paddingBottom: 16,
     borderTopRightRadius: 12,
     borderTopLeftRadius: 12,
+    maxHeight: Dimensions.get('screen').height
   },
 });
 

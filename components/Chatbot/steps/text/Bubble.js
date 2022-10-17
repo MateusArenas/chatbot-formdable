@@ -109,7 +109,7 @@ const Bubble = (props) => {
           marginLeft,
           maxWidth,
           minHeight: 42,
-          borderWidth: 1, borderColor: 'rgba(0,0,0,.05)',
+          borderWidth: 1, borderColor: 'rgba(0,0,0,.1)',
           // borderWidth: 1, borderColor: "rgba(0,0,0,.05)",
         },
         props?.style,

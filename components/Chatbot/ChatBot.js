@@ -1,11 +1,13 @@
 import PropTypes from 'prop-types';
 import Random from 'random-id';
 import React, { Component } from 'react';
-import { Dimensions, Image, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, Keyboard, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const defaultBotAvatar = require('../../assets/avatar-horiz.png');
 
 import { TextInputMask } from 'react-native-masked-text'
+
+import Gradient from '../Gradient'
 
 import BottomSheetModal from './BottomSheetModal';
 import Radiobox from './steps/common/Radiobox'
@@ -229,9 +231,20 @@ const ChatBot = props => {
       defaultUserSettings,
     } = state;
     let { currentStep, previousStep } = state;
+
+    if (currentStep?.id === data?.trigger) {
+      return;
+    }
+    
+    if (data?.id) {
+      currentStep = Object.assign({}, steps[data?.id]);
+    }
+
+    console.log({ data });
+
     const isEnd = currentStep?.end;
 
-    props?.handleStep?.(currentStep, data);
+    props?.handleStep?.({ step: currentStep, data, previousValue: previousSteps?.value, steps });
 
     if (data && data?.value) {
       currentStep.value = data?.value;
@@ -241,40 +254,68 @@ const ChatBot = props => {
     }
 
     if (isEnd) {
-      handleEnd();
-    } else if (currentStep?.options && data) {
+      return handleEnd();
+    } 
+
+    if (currentStep?.options && data) {
 
       const option = currentStep?.options
-      .find(o => (data?.key&&o?.key) ? (o?.key === data?.key) : (o?.value === data?.value));
+      ?.find(o => (data?.key&&o?.key) ? (o?.key === data?.key) : (o?.value === data?.value));
 
-      // console.log({ option });
       const trigger = getTriggeredStep(option?.trigger || currentStep?.trigger, currentStep?.value);
-      delete currentStep?.options;
+      // const freezes = option?.freeze ? { freezes: currentStep?.options } : {};
 
-      currentStep = Object.assign(
-        {},
-        currentStep,
-        data?.multiple ? { key: data?.key, value: data?.value  } : option,
-        defaultUserSettings,
-        {
-          user: true,
-          message: data?.multiple ? data?.label : option?.label,
-          trigger,
-        },
-      );
+      if (!option?.freeze) {
+        delete currentStep?.options;
+        
+        currentStep = Object.assign(
+          {},
+          currentStep,
+          // freezes,
+          data?.multiple ? { key: data?.key, value: data?.value  } : option,
+          defaultUserSettings,
+          {
+            user: true,
+            message: data?.multiple ? data?.label : option?.label,
+            trigger,
+          },
+        );
+  
+        renderedSteps.pop();
+        previousSteps.pop();
+        renderedSteps.push(currentStep);
+        previousSteps.push(currentStep);
 
-      renderedSteps.pop();
-      previousSteps.pop();
-      renderedSteps.push(currentStep);
-      previousSteps.push(currentStep);
+      } else {
+        let nextStep = Object.assign({ freeze: true }, steps[trigger]);
+
+        nextStep.key = Random(24);
+
+        previousStep = currentStep;
+        currentStep = nextStep;
+  
+        if (nextStep.user) {
+          setState(state => ({ ...state, editable: true }));
+          inputRef?.current?.focus?.();
+        } else {
+          nextStep.lasted = true;
+          renderedSteps.push(nextStep);
+          previousSteps.push(nextStep);
+          Keyboard.dismiss();
+        }
+
+      }
+
+      const freezed = currentStep?.freeze ? currentStep.key : "";
 
       setState(state => ({
         ...state,
         currentStep,
-        renderedSteps,
+        renderedSteps: renderedSteps.filter(step => step.key !== freezed),
         previousSteps,
       }));
     } else if (currentStep?.trigger) {
+
       const isReplace = currentStep?.replace && !currentStep?.option;
 
       if (isReplace) {
@@ -311,50 +352,63 @@ const ChatBot = props => {
       } else {
         renderedSteps.push(nextStep);
         previousSteps.push(nextStep);
+        Keyboard.dismiss();
       }
 
       if (data?.overwrite) {
-
-        const overwriteSteps = previousSteps.map(renderedStep => 
-          Object.keys(data?.overwrite).includes(renderedStep?.id) ? ({
-            ...renderedStep,
-            value: data?.overwrite?.[renderedStep?.id],
-            user: true,
-          }) : renderedStep
-        )
-  
-        Object.keys(data?.overwrite).forEach(key => {
-          if (!overwriteSteps.find(renderedStep => key === renderedStep?.id)) {
-            overwriteSteps.push({
-              id: key,
-              key: Random(24),
-              value: data?.overwrite?.[key],
-              user: true,
-              trigger: data?.defaultTrigger || '7',
-              message: undefined
-            })
-          }
-        })
-
-        setState(state => ({
-          ...state,
-          renderedSteps,
-          previousSteps: overwriteSteps,
-          currentStep,
-          previousStep,
-        }));
-      } else {
-        setState(state => ({
-          ...state,
+        return assingOverwrite(data, {
           renderedSteps,
           previousSteps,
           currentStep,
           previousStep,
-        }));
-      }
+        })
+      } 
 
-      Keyboard.dismiss();
+      setState(state => ({
+        ...state,
+        renderedSteps,
+        previousSteps,
+        currentStep,
+        previousStep,
+      }));
     }
+  }
+
+  function assingOverwrite (data, {
+    renderedSteps,
+    previousSteps,
+    currentStep,
+    previousStep,
+  }) {
+    
+    const overwriteSteps = previousSteps.map(renderedStep => 
+      Object.keys(data?.overwrite).includes(renderedStep?.id) ? ({
+        ...renderedStep,
+        value: data?.overwrite?.[renderedStep?.id],
+        user: true,
+      }) : renderedStep
+    )
+
+    Object.keys(data?.overwrite).forEach(key => {
+      if (!overwriteSteps.find(renderedStep => key === renderedStep?.id)) {
+        overwriteSteps.push({
+          id: key,
+          key: Random(24),
+          value: data?.overwrite?.[key],
+          user: true,
+          trigger: data?.defaultTrigger || '7',
+          message: undefined
+        })
+      }
+    })
+
+    setState(state => ({
+      ...state,
+      renderedSteps,
+      previousSteps: overwriteSteps,
+      currentStep,
+      previousStep,
+    }));
   }
 
   const generateRenderedStepsById = () => {
@@ -521,69 +575,116 @@ const ChatBot = props => {
             setSelecteds([]);
           }}
           >
-              {currentStep?.title && <Text style={{ fontSize: 18, fontWeight: '500', marginBottom: 24 }}>{currentStep?.title}</Text>}
-              {currentStep?.options?.map((option, index) => (
-                <TouchableOpacity key={index} 
-                  style={{ padding: 8, marginBottom: 12 }}
-                  onPress={() => {
-                    if (currentStep?.multiple) {
-                      setSelecteds(selecteds => {
-                        const selected = selecteds.find(selected => (selected === (option?.key || option?.value)));
-                        if (selected) {
-                          return selecteds.filter(selected => (selected !== (option?.key || option?.value)));
-                        } else {
-                          return [...selecteds, (option?.key || option?.value)];
-                        }
-                      })
-                    } else {
-                      setSelecteds([option?.key || option?.value])
-                    }
-                  }}
+              <View style={{ marginBottom: 24, marginTop: 8 }}>
+                {currentStep?.title && <Text style={{ fontSize: 18, fontWeight: '500', textAlign: 'center' }}>{currentStep?.title}</Text>}
+                {currentStep?.scape && (
+                  <TouchableOpacity onPress={() => triggerNextStep({ 
+                    trigger: currentStep?.scape?.trigger, 
+                    label: currentStep?.scape?.label,
+                    key: currentStep?.scape?.key,
+                  })}>
+                    <Text style={{ fontSize: 14, color: "#0474fe" }}>{currentStep?.scape?.label}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={{ position: 'relative', borderRadius: 12, overflow: 'hidden' }}>
+
+                <View style={{ width: '100%', height: 20, position: 'absolute', bottom: 0, zIndex: 1 }}>
+                  <Gradient colors={["#fefefe", "#fefefe"]} opacitys={[.6, 0]} 
+                  />
+                </View>
+
+                <ScrollView style={{ 
+                  maxHeight: (Dimensions.get('screen').height/2)-36,
+                  backgroundColor: 'rgba(0,0,0,.02)',
+                  paddingBottom: 20, 
+                }}
                 >
-                  <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Text style={{ fontSize: 14, fontWeight: '500' }}>{option?.label}</Text>
-                    {currentStep?.multiple ? (
-                      <Checkbox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? '#0474fe' : 'black'} 
-                        size={24}
-                        marked={!!selecteds.find(selected => (selected === (option?.key || option?.value)))}
-                      />
-                    ) : (
-                      <Radiobox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? '#0474fe' : 'black'} 
-                        size={24}
-                        marked={!!selecteds.find(selected => (selected === (option?.key || option?.value)))}
-                      />
-                    )}
-                  </View>
+                  {currentStep?.options?.map((option, index) => (
+                    <TouchableOpacity key={index} 
+                      style={[
+                        { padding: 8, paddingBottom: 12, paddingTop: 12, paddingHorizontal: 20 },
+                        { borderBottomWidth: (index < (currentStep?.options.length-1)) ? 1.5 : 0, borderColor: 'rgba(0,0,0,.05)' }
+                      ]}
+                      onPress={() => {
+                        const value = (option?.key || option?.value);
+                        const selected = selecteds.find(selected => (selected === value));
+
+                        if (currentStep?.multiple) {
+                          setSelecteds(selecteds => {
+                            if (selected) {
+                              return selecteds.filter(selected => (selected !== value));
+                            } else {
+                              return [...selecteds, value];
+                            }
+                          })
+                        } else {
+                          if (selected) {
+                            setSelecteds([]);
+                          } else {
+                            setSelecteds([value])
+                          }
+                        }
+                      }}
+                    >
+                      {(
+                            <View style={{ width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <View>
+                                <Text style={{ fontSize: 16, fontWeight: '500' }}>{option?.label}</Text>
+                                {!!option?.field && (
+                                  <Text style={{ fontSize: 14, marginTop: 4, fontWeight: '500', opacity: .5 }}>
+                                    {state?.previousSteps.find(step => step.id === option?.field)?.value || "Não informado."}
+                                  </Text>
+                                )}
+                              </View>
+                              {(currentStep?.multiple ? (
+                                <Checkbox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? '#0474fe' : 'black'} 
+                                  size={24}
+                                  marked={!!selecteds.find(selected => (selected === (option?.key || option?.value)))}
+                                />
+                              ) : (
+                                <Radiobox color={selecteds.find(selected => (selected === (option?.key || option?.value))) ? '#0474fe' : 'black'} 
+                                  size={24}
+                                  marked={!!selecteds.find(selected => (selected === (option?.key || option?.value)))}
+                                />
+                              ))}
+                            </View>
+                        ) 
+                      }
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+                <TouchableOpacity style={[
+                  { flexGrow: 1, padding: 18, borderRadius: 20, backgroundColor: '#0474fe' },
+                  !selecteds.length && { opacity: .5, backgroundColor: "black" }
+                ]}
+                  // disabled={!selecteds.length}
+                  onPress={() => {
+                    setModalVisible(false)
+                    if (selecteds.length) {
+                      if (!currentStep?.multiple) {
+                        const { key, value, trigger } = currentStep?.options.find(option => {
+                          const selected = selecteds.find(selected => (selected === (option?.key || option?.value)));
+                          return (option?.key || option?.value) === selected;
+                        });
+                        triggerNextStep({ key, value, trigger, id: currentStep.id })
+                      } else {
+                        const options = selecteds.map(selected => {
+                          const option = currentStep?.options?.find(option => (selected === (option?.key || option?.value)));
+                          return option;
+                        });
+  
+                        const key = selecteds.join('+');
+                        const value = options.map(option => option.value);
+                        const label = options.map(option => option.label).join(options.length > 1 ? ' + ' : '');
+  
+                        triggerNextStep({ key, value, multiple: true, label, id: currentStep.id  })
+                      }
+                    }
+                  }}>
+                  <Text style={{ textAlign: 'center', textTransform: 'uppercase', fontWeight: '500', fontSize: 14, color: 'white' }}>{!selecteds.length ? "Voltar" : 'Confirmar'}</Text>
                 </TouchableOpacity>
-              ))}
-              <TouchableOpacity style={[
-                { flexGrow: 1, padding: 18, borderRadius: 20, backgroundColor: '#0474fe' },
-                !selecteds.length && { opacity: .5 }
-              ]}
-                disabled={!selecteds.length}
-                onPress={() => {
-                  setModalVisible(false)
-                  if (!currentStep?.multiple) {
-                    const { key, value, trigger } = currentStep?.options.find(option => {
-                      const selected = selecteds.find(selected => (selected === (option?.key || option?.value)));
-                      return (option?.key || option?.value) === selected;
-                    });
-                    triggerNextStep({ key, value, trigger })
-                  } else {
-                    const options = selecteds.map(selected => {
-                      const option = currentStep?.options?.find(option => (selected === (option?.key || option?.value)));
-                      return option;
-                    });
-
-                    const key = selecteds.join('+');
-                    const value = options.map(option => option.value);
-                    const label = options.map(option => option.label).join(options.length > 1 ? ' + ' : '');
-
-                    triggerNextStep({ key, value, multiple: true, label  })
-                  }
-                }}>
-                <Text style={{ textAlign: 'center', textTransform: 'uppercase', fontWeight: '500', fontSize: 14, color: 'white' }}>Confirmar</Text>
-              </TouchableOpacity>
         </BottomSheetModal>
         <ChatBotContainer
           className={`rsc ${className}`}
@@ -608,13 +709,16 @@ const ChatBot = props => {
                 />
               </View>
               <Text style={{ marginTop: 12, marginBottom: 4, fontWeight: 'bold', fontSize: 22 }}>Credinho</Text>
-              <Text style={{ fontWeight: '500', fontSize: 12, color: '#0079fa' }}>Credauto</Text>
-              <Text style={{ marginTop: 12, fontWeight: '500', opacity: .5, fontSize: 12, textAlign: 'center' }}>Credinho é um robo que facilita a sua consulta em nosso sistema.</Text>
+              <TouchableOpacity onPress={() => Linking.openURL("https://www.redecredauto.com.br/portal/")}>
+                <Text style={{ fontWeight: '500', fontSize: 12, color: '#0079fa' }}>redecredauto.com</Text>
+              </TouchableOpacity>
+              <Text style={{ marginTop: 12, fontWeight: '500', opacity: .5, fontSize: 12, textAlign: 'center' }}>Credinho é um assistente virtual que facilita a sua consulta em nosso sistema.</Text>
             </View>
             {renderedSteps?.map((step, index) => (
               <RenderStep key={index} {...props}
+                index={index}
                 state={state} step={step}
-                triggerNextStep={triggerNextStep} index={index}
+                triggerNextStep={triggerNextStep} 
                 isFirstPosition={isFirstPosition}
                 isLastPosition={isLastPosition}
               />
@@ -805,7 +909,7 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
   if (component && !asMessage) {
     return (
       <CustomStep
-        key={index}
+      index={index}
         delay={customDelay}
         step={step}
         steps={steps} renderedSteps={renderedSteps}
@@ -819,7 +923,7 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
   if (event && !asMessage && !component) {
     return (
       <EventStep
-        key={index}
+      index={index}
         delay={customDelay}
         step={step}
         steps={steps}  renderedSteps={renderedSteps}
@@ -840,12 +944,12 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
   }
 
 
-  if (options) {
+  if (options || step?.freezes) {
     if (feature) return null;
     return (
       <OptionsStep
-        key={index}
-        step={step}
+      index={index}
+        step={step?.freezes ? { ...step, options: step?.freezes } : step}
         triggerNextStep={triggerNextStep}
         optionStyle={optionStyle || bubbleStyle}
         optionElementStyle={optionElementStyle|| bubbleStyle}
@@ -855,7 +959,7 @@ const RenderStep = React.memo(({ step, state, triggerNextStep, isFirstPosition, 
 
   return (
     <TextStep
-      key={index}
+    index={index}
       step={step}
       steps={steps} renderedSteps={renderedSteps}
       previousValue={previousStep.value}

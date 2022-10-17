@@ -20,6 +20,11 @@ export default [
     required: false,
   },  
   {
+    key: 'scape',
+    types: ['object'],
+    required: false,
+  },
+  {
     key: 'trigger',
     types: ['string', 'number', 'function'],
     required: false,

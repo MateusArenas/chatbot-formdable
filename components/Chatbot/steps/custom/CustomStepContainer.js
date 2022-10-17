@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Animated } from 'react-native';
+import { Animated, View } from 'react-native';
 
 const ChatStepContainer = (props) => {
   

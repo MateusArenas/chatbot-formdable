@@ -10,7 +10,10 @@ const OptionElement = (props) => {
           fontSize: 14,
           fontWeight: '500', 
         },
-        props?.style
+        props?.style,
+        props?.primary && {
+          color: "white",
+        }
       ]}
     />
   );

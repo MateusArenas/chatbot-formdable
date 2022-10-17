@@ -8,7 +8,7 @@ export async function clearLastSession () {
   await AsyncStorage.removeItem(STORAGE_CHATBOT_KEY)
 }
 
-export async function setLastSession ({ step, overwrite: newOverwrite }) {
+export async function setLastSession ({ step, overwrite: newOverwrite, ...props }) {
   if (step?.value || newOverwrite) {
     const storageValue = await AsyncStorage.getItem(STORAGE_CHATBOT_KEY);
       let defaultData = {};
@@ -16,8 +16,10 @@ export async function setLastSession ({ step, overwrite: newOverwrite }) {
 
       const { overwrite, lastTrigger } = defaultData;
 
+      const trigger = ( typeof step?.trigger === 'function' ) ? step?.trigger({ step, ...props }) : step?.trigger;
+
       await AsyncStorage.setItem(STORAGE_CHATBOT_KEY, JSON.stringify({
-        lastTrigger: step?.trigger === RELOAD_LAST_SESSION_KEY ? lastTrigger : step?.trigger,
+        lastTrigger: trigger === RELOAD_LAST_SESSION_KEY ? lastTrigger : trigger,
         overwrite: { 
           ...overwrite,
           ...newOverwrite,  

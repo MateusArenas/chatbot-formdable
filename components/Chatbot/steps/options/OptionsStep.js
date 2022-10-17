@@ -8,10 +8,11 @@ import Options from './Options';
 import OptionText from './OptionText';
 
 const OptionsStep = props => {
-  /* istanbul ignore next */
+  const [pressed, setPressed] = React.useState("")
 
   const onOptionClick = ({ value, trigger, key }) => {
-    props.triggerNextStep({ value, trigger, key });
+    setPressed(key || value);
+    props.triggerNextStep({ value, trigger, key, id: props.step.id });
   }
 
   const { options } = props.step;
@@ -20,6 +21,7 @@ const OptionsStep = props => {
     <Options className="rsc-os">
       {options?.map((option, index) => (
         <RenderOption key={index} {...props}
+          pressed={pressed === (option?.key || option?.value)}
           option={option}
           onOptionClick={onOptionClick}
         />
@@ -37,7 +39,7 @@ OptionsStep.propTypes = {
 
 export default  React.memo(OptionsStep);
 
-const RenderOption = React.memo(({ option, onOptionClick, ...props }) => {
+const RenderOption = React.memo(({ option, onOptionClick, pressed, ...props }) => {
   const { optionStyle, optionElementStyle } = props;
   const { optionBubbleColor, optionFontColor, bubbleColor, fontColor } = props.step;
   const { value, label, trigger, key } = option;
@@ -61,19 +63,20 @@ const RenderOption = React.memo(({ option, onOptionClick, ...props }) => {
   }, [pushAnim, contentSizeY])
 
   return (
-    <Option style={[optionStyle, { bottom: pushAnim }]}
+    <Option style={[optionStyle, { bottom: pushAnim }, pressed && { opacity: .5 }]}
       onLayout={e => {
         !contentSizeY && setContentSizeY(e.nativeEvent.layout.height)
       }} 
       className="rsc-os-option"
+      disabled={pressed}
       onPress={() => onOptionClick({ value, trigger, key })}
     >
-      <OptionElement
+      <OptionElement primary={option?.primary}
         className="rsc-os-option-element"
         style={optionElementStyle}
         bubbleColor={optionBubbleColor || bubbleColor}
       >
-        <OptionText
+        <OptionText primary={option?.primary}
           class="rsc-os-option-text"
           fontColor={optionFontColor || fontColor}
         >

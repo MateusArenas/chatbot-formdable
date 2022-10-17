@@ -7,7 +7,7 @@ const OptionElement = (props) => {
       style={[
         {
           backgroundColor: '#fafafa' || props.bubbleColor,
-          borderWidth: 1, borderColor: 'rgba(0,0,0,.05)',
+          borderWidth: 1, borderColor: '#0474fe',
           paddingTop: 12,
           paddingRight: 18,
           paddingBottom: 12,
@@ -22,7 +22,10 @@ const OptionElement = (props) => {
           // shadowRadius: 4.41,
           // elevation: 2,
         },
-        props?.style
+        props?.style,
+        props?.primary && {
+          backgroundColor: "#0474fe",
+        }
       ]}
     />
   );

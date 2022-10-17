@@ -1,7 +1,8 @@
-import { useIsMounted } from '../../../hooks/useIsMounted'
 import axios from 'axios';
 import React from 'react';
 import { Text } from 'react-native';
+
+import { useIsMounted } from '../../../hooks/useIsMounted'
 
 const LoadingAnddress = props => {
   // const [message, setMessage] = React.useState('');

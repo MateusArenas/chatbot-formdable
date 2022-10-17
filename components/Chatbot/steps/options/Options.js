@@ -13,7 +13,7 @@ const Options = (props) => {
           flexDirection: 'row',
           flexWrap: 'wrap',
         },
-        props?.style
+        props?.style,
       ]}
     />
   );
