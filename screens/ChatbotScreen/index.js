@@ -189,7 +189,6 @@ const SimpleForm = () => {
                 { key: '6', label: 'CNPJ*', field: "cnpj", trigger: "update-cnpj"  },
                 { key: '7', label: 'Telefone*', field: "cell", trigger: "update-cell"  },
                 { key: '8', label: 'Telefone (2)', field: "cell", trigger: "update-phone"  },
-
                 { key: '9', label: "CEP*", field: "cep", trigger: "update-cep" }, 
                 { key: '10', label: 'Estado*', field: "state", trigger: 'update-state' },
                 { key: '11', label: 'Cidade*', field: "city", trigger: 'update-city' },

@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import { Animated, Easing, Image, Text, TouchableWithoutFeedback } from 'react-native';
 
 import Loading from '../common/Loading';
 import Bubble from './Bubble';
@@ -8,9 +9,7 @@ import ImageContainer from './ImageContainer';
 import TextMessage from './TextMessage';
 import TextStepContainer from './TextStepContainer';
 
-import { Animated, Easing, Image } from 'react-native'; 
-
-const defaultBotAvatar = require('../../../../assets/avatar-horiz-min.png');
+const defaultBotAvatar = require('../../../../assets/avatar-horiz.png');
 
 const TextStep = props => {
   /* istanbul ignore next */
@@ -116,7 +115,7 @@ const TextStep = props => {
                   avatarWrapperStyle, 
                   { transform: [{ scale: scaleAnim }] },
                   { 
-                    alignSelf: 'center', bottom: 0, backgroundColor: 'tomato', 
+                    alignSelf: 'center', bottom: 0, backgroundColor: '#0077ff', 
                     borderWidth: 0, position: 'absolute',
                   }
                 ]}
@@ -194,7 +193,24 @@ const RenderMessage = React.memo(props => {
     });
   }
 
+  const links = message?.match?.(/{link:(.*?)}/);
+
   message = message?.replace?.(/{previousValue}/g, previousValue) || "";
+
+  if (links?.length) {
+
+    const [previous, lasteds] = message?.split?.(/{link:.*}/g);
+
+    return (
+      <Text>
+        {previous}
+        <TouchableWithoutFeedback onPress={() => step?.link?.(links?.[1])}>
+          <Text style={{ color: "#0076fa" }}>{links?.[1]}</Text>
+        </TouchableWithoutFeedback >
+        {lasteds}
+      </Text>
+    );
+  }
 
   return message;
 })

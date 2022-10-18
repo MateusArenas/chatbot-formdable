@@ -8,6 +8,8 @@ const BottomSheetModal = props => {
     if (props?.visible) {
       resetPositionAnim.start();
     }
+
+    return () => console.log("Clearup");
   }, [props?.visible])
 
   function handleDismiss() {

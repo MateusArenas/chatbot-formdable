@@ -709,10 +709,7 @@ const ChatBot = props => {
             <View style={{ flex: 1, alignItems: 'center', padding: 24, marginTop: 24, marginBottom: 24 }}>
               <View style={{ width: 120, height: 120, backgroundColor: '#0077ff', borderRadius: 120, borderWidth: 1, borderColor: "rgba(0,0,0,.05)",  }}>
                 <Image source={defaultBotAvatar}
-                      style={{
-                         width: '100%', height: '100%', transform: [{ scale: 1.15 }],
-                         
-                      }}
+                  style={{ width: '100%', height: '100%', transform: [{ scale: 1.15 }] }}
                 />
               </View>
               <Text style={{ marginTop: 12, marginBottom: 4, fontWeight: 'bold', fontSize: 22 }}>Credinho</Text>
