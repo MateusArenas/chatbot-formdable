@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import Random from 'random-id';
+import Random from './utils/random-id';
 import React, { Component } from 'react';
 import { Dimensions, Image, Keyboard, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
