@@ -33,7 +33,7 @@ const DotLoading = ({ delay=100, color="black", onFinish, init, ...props}) => {
 
   React.useEffect(() => {
     const listener =  circleRadius?.addListener?.( (circleRadius) => {
-      circleRef?.current?.setNativeProps?.({ r: circleRadius.value.toString(), opacity: circleRadius.value/3 });
+      circleRef?.current?.setNativeProps?.({ r: circleRadius?.value?.toString?.(), opacity: circleRadius?.value/3 });
     });
 
     return () => circleRadius.removeListener(listener);

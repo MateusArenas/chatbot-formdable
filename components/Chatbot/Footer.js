@@ -21,7 +21,8 @@ const Footer = (props) => {
           // shadowRadius: 4.41,
           // elevation: 2,
         },
-        props?.style
+        props?.style,
+        { position: 'relative' }
       ]}
     />
   );

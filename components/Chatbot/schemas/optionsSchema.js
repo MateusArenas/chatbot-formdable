@@ -10,13 +10,8 @@ export default [
     required: false,
   },
   {
-    key: 'feature',
-    types: ['boolean'],
-    required: false,
-  },  
-  {
-    key: 'multiple',
-    types: ['boolean'],
+    key: 'type',
+    types: ['string'], // default or multiple or unique
     required: false,
   },  
   {

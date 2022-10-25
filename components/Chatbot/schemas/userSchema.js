@@ -5,6 +5,11 @@ export default [
     required: true,
   },
   {
+    key: 'suggestions',
+    types: ['object'],
+    required: false,
+  },
+  {
     key: 'user',
     types: ['boolean'],
     required: true,

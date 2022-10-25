@@ -4,7 +4,9 @@ import { KeyboardAvoidingView } from 'react-native';
 const InputView = (props) => {
   return (
     <KeyboardAvoidingView {...props} 
-      style={[{},
+      style={[{
+        position: 'relative'
+      },
         props?.style
       ]}
     />

@@ -1,4 +1,4 @@
-// import { useHeaderHeight } from '@react-navigation/stack';
+import { useHeaderHeight } from '@react-navigation/elements';
 import axios from 'axios';
 import { cnpj, cpf } from 'cpf-cnpj-validator';
 import React, { Component } from 'react';
@@ -12,7 +12,7 @@ import DotsLoading from '../../components/Chatbot/steps/common/DotsLoading'
 
 const { StatusBarManager } = NativeModules;
 
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : StatusBarManager.HEIGHT;
+const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 20 : (StatusBarManager?.HEIGHT || 0);
 
 import asyncLoadingLastSession, { 
   setLastSession, 
@@ -31,7 +31,7 @@ import Gradient from '../../components/Gradient';
 import ContactWhatsappAction from './ContactWhatsappAction';
 
 const SimpleForm = () => {
-    // const height = useHeaderHeight();
+    const height = useHeaderHeight();
 
     const theme = {
       light: {
@@ -41,9 +41,9 @@ const SimpleForm = () => {
         userFontColor: "#fafafa", userBubbleColor: "#0073f2",
         botFontColor: "#2c353e", botBubbleColor: "#fafafa",
         sendIconColor: "#fafafa",
-        footerBackgroundColor: '#f6f6f6',
+        footerBackgroundColor: '#ffffff',
         inputTextColor: '#2c2a2a',
-        inputBackgroundColor: '#ffffff',
+        inputBackgroundColor: 'rgba(0,0,0,.025)',
         inputPlaceholderTextColor: '#625e5e'
       },
       // dark: {
@@ -106,27 +106,31 @@ const SimpleForm = () => {
           footerStyle={{ 
             borderTop: 0, padding: 12, 
             backgroundColor: theme['light'].footerBackgroundColor, 
+            position: 'relative', 
           }}
           inputStyle={{ 
-            backgroundColor: theme['light'].inputBackgroundColor, 
+            backgroundColor: theme['light'].inputBackgroundColor,
             borderWidth: 1, borderColor: "rgba(0,0,0,.05)",
-            borderRadius: 20, borderTopRightRadius: 0, borderBottomRightRadius: 0,
-            color: theme['light'].inputTextColor, fontSize: 16, flex: 1,
+            borderRadius: 20, 
+            color: theme['light'].inputTextColor, fontSize: 16, 
+            flex: 1,
             paddingLeft: 18,
           }}
           submitButtonStyle={{ 
-            backgroundColor: "#0474fe", fontSize: 16,  
-            borderWidth: 1, borderColor: "white", borderLeftWidth: 0,
-            borderRadius: 20, 
-            borderTopLeftRadius: 0, borderBottomLeftRadius: 0,
-            padding: 20, paddingLeft: 16,
-            margin: 10, marginLeft: 0
+            // backgroundColor: "#0474fe", 
+            // fontSize: 16,  
+            // borderWidth: 1, borderColor: "white", borderLeftWidth: 0,
+            // borderRadius: 20, 
+            // borderTopLeftRadius: 0, borderBottomLeftRadius: 0,
+            // padding: 20, paddingLeft: 16,
+            // margin: 10, marginLeft: 0,
+            // position: "relative"
           }}
           submitButtonContent={"Enviar"}
           placeholder={"Digite aqui..."}
           scrollViewProps={{ 
             contentContainerStyle: {
-              paddingTop: 0 || STATUSBAR_HEIGHT,
+              paddingTop: height || STATUSBAR_HEIGHT,
               paddingBottom: 0 || STATUSBAR_HEIGHT,
               flexGrow: 1, justifyContent: 'flex-end',
             }
@@ -179,7 +183,7 @@ const SimpleForm = () => {
             { /////                      TESTE
               id: 'changes',
               title: 'Qual campo você quer mudar?',
-              feature: true,
+              type: "unique",
               options: [
                 { key: '1', label: 'Name*', field: "name", trigger: "update-name" },
                 { key: '2', label: 'Email*', field: "email", trigger: "update-email"  },
@@ -219,8 +223,7 @@ const SimpleForm = () => {
             {
               id: 'product',
               title: 'Quais produtos você quer contratar?',
-              feature: true,
-              multiple: true,
+              type: "multiple",
               trigger: 'email-quest',
               options: [
                 { value: 'analize', label: 'Análise de Crédito' },
@@ -619,15 +622,25 @@ const SimpleForm = () => {
               trigger: '7',
             },
             {
+              id: 'state',
+              user: true,
+              inputAttributes: { autoFoucus: true },
+              suggestions: allStates,
+              validator: (value) => {
+                if (!allStates.includes(value)) {
+                  return 'Selecione um dos apresentados.';
+                } 
+                return true;
+              },
+              trigger: 'update-init',
+              // options: allStates.map(state => ({
+              //   value: state, label: state, trigger: 'update-init'
+              // })),
+            },
+            {
               id: 'update-state',
               update: 'state',
               trigger: '7',
-            },
-            {
-              id: 'state',
-              options: allStates.map(state => ({
-                value: state, label: state, trigger: 'update-init'
-              })),
             },
             {
               id: 'update-city',
