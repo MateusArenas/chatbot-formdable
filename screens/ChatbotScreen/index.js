@@ -29,6 +29,7 @@ import SubmitDataAction from './SubmitDataAction'
 import ChatBot from '../../components/Chatbot';
 import Gradient from '../../components/Gradient';
 import ContactWhatsappAction from './ContactWhatsappAction';
+import LoadingCNPJ from './LoadingCNPJ';
 
 const SimpleForm = () => {
     const height = useHeaderHeight();
@@ -301,7 +302,7 @@ const SimpleForm = () => {
                 placeholder: "Escolha uma opção",
               },
               options: [
-                { key: "1", label: "Não", trigger: 'socialReason-quest' },
+                { key: "1", label: "Não", trigger: 'cnpj-quest' },
                 { key: "2", label: "Sim", trigger: 'phone-quest', primary: true },
               ],
             },
@@ -313,7 +314,7 @@ const SimpleForm = () => {
             {
               id: 'phone',
               user: true,
-              trigger: 'socialReason-quest',
+              trigger: 'cnpj-quest',
               inputAttributes: {
                 textContentType: "telephoneNumber",
                 keyboardType: "numeric",
@@ -339,6 +340,38 @@ const SimpleForm = () => {
                 }
                 return true;
               },
+            },
+            {
+              id: 'cnpj-quest',
+              message: 'Informe o CNPJ da empresa',
+              trigger: 'cnpj',
+            },
+            {
+              id: 'cnpj',
+              user: true,
+              inputAttributes: { 
+                type: 'cnpj',
+                placeholder: "__.___.___/____-__",
+              },
+              validator:  (value) => {
+                if (!cnpj.isValid(value)) {
+                  return 'cnpj inválido.';
+                } 
+                return true;
+              },
+              trigger: 'cnpj-get',
+            },
+            {
+              id: 'cnpj-get',
+              replace: true,
+              waitAction: true, 
+              event: LoadingCNPJ,
+              trigger: 'andress-update-fields-quest',
+            },
+            { 
+              id: 'cnpj-failure',
+              message: 'CNPJ não encontrado, porfavor insira um válido.',
+              trigger: 'update-cnpj',
             },
             {
               id: 'socialReason-quest',
@@ -373,30 +406,8 @@ const SimpleForm = () => {
                 } 
                 return true;
               },
-              trigger: 'cnpj-quest',
-            },
-
-            {
-              id: 'cnpj-quest',
-              message: 'Informe o CNPJ da empresa',
-              trigger: 'cnpj',
-            },
-            {
-              id: 'cnpj',
-              user: true,
-              inputAttributes: { 
-                type: 'cnpj',
-                placeholder: "__.___.___/____-__",
-              },
-              validator:  (value) => {
-                if (!cnpj.isValid(value)) {
-                  return 'cnpj inválido.';
-                } 
-                return true;
-              },
               trigger: 'cep-quest',
             },
-
             {
               id: 'cep-quest',
               message: 'Informe o CEP do endereço',
@@ -597,21 +608,21 @@ const SimpleForm = () => {
             {
               id: 'update-cep',
               update: 'cep',
-              trigger: ({ steps, ...props }) => {
+              trigger: ({ steps }) => {
                 const askwantchange = ['state', 'city', 'district', 'street'].reduce((acc, key) => (acc&&steps[key]?.value), true);
                 return !askwantchange ? 'andress' : 'andress-update-fields-quest'
               },
             },
             {
               id: 'andress-update-fields-quest',
-              message: 'Deseja atualizar os campos de endereço com base no CEP {previousValue} ?',
+              message: ({ steps, previousValue }) => `Deseja atualizar os campos de endereço com base no CEP ${steps["cep"]?.value || previousValue} ?`,
               trigger: 'andress-update-fields-require',
             },
             {
               id: 'andress-update-fields-require',
               options: [
-                { key: '1', label: "Não", trigger: '7' },
-                { key: '2', label: "Sim", trigger: 'andress-reload', primary: true },
+                { key: '1', label: "Não", trigger: ({ steps }) => (!!steps["andress"]?.value) ? '7' : "cep-quest" },
+                { key: '2', label: "Sim", trigger: 'andress', primary: true },
               ],
             },
             {

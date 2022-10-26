@@ -1,6 +1,6 @@
 import React from 'react';
 
-const STORAGE_CHATBOT_KEY = "RCA_CHATBOT-1.9.2";
+const STORAGE_CHATBOT_KEY = "RCA_CHATBOT-1.9.9";
 export const RELOAD_LAST_SESSION_KEY = 'reload-last-session-message';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
