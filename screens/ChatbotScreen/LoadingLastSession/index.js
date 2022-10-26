@@ -5,7 +5,7 @@ export const RELOAD_LAST_SESSION_KEY = 'reload-last-session-message';
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export async function clearLastSession () {
-  await AsyncStorage.removeItem(STORAGE_CHATBOT_KEY)
+  return await AsyncStorage.removeItem(STORAGE_CHATBOT_KEY)
 }
 
 export async function setLastSession ({ step, overwrite: newOverwrite, ...props }) {

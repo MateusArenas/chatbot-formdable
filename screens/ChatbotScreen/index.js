@@ -162,9 +162,16 @@ const SimpleForm = () => {
                 placeholder: "Escolha uma opção",
               },
               options: [
-                { key: "1", label: 'Refazer', trigger: 'initialize' },
+                { key: "1", label: 'Refazer', trigger: 'redo' },
                 { key: "2", label: 'Continuar', trigger: ({ steps }) => steps['lastTrigger']?.value, primary: true },
               ],
+            },
+            {
+              id: "redo",
+              replace: true,
+              waitAction: true, 
+              event: props => clearLastSession().then(() => props.triggerNextStep({})),
+              trigger: 'initialize'
             },
             {
               id: 'initialize',
