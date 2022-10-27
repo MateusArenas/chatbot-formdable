@@ -6,7 +6,7 @@ import Random from './utils/random-id';
 
 import SendIcon from './steps/common/SendIcon'
 
-const defaultBotAvatar = require('../../assets/images/avatar-horiz.png');
+const defaultBotAvatar = require('./steps/common/images/avatar-horiz.png');
 
 import { TextInputMask } from 'react-native-masked-text'
 

@@ -8,7 +8,7 @@ import Img from '../text/Image';
 import ImageContainer from '../text/ImageContainer';
 import EventStepContainer from './EventStepContainer';
 
-const defaultBotAvatar = require('../../../../assets/images/avatar-horiz.png');
+const defaultBotAvatar = require('../common/images/avatar-horiz.png');
 
 const EventStep = props => {
   const [stage, setStage] = React.useState(0);
