@@ -59,7 +59,6 @@ const Bubbles = ({ size=8, color="#272822", spaceBetween=12, ...props }) => {
         })
       ])
       .start((finished) => {
-        console.log("denovo");
         if (!isMountedRef.current && finished) {
           animate(index);
         }
@@ -81,7 +80,7 @@ const Bubbles = ({ size=8, color="#272822", spaceBetween=12, ...props }) => {
   }
 
 
-  const width = size * 6 + spaceBetween * 2;
+  const width = ( size * 2) + spaceBetween * 2.5;
   const height = size * 2;
 
   return (
@@ -91,7 +90,7 @@ const Bubbles = ({ size=8, color="#272822", spaceBetween=12, ...props }) => {
         y="0px"
         width={width}
         height={height}
-        viewBox={`0 0 ${(width*1.3)} ${height*2}`}
+        viewBox={`0 0 ${(width*2)} ${height*2}`}
         {...props}
     >
         {renderBubble(0)}
