@@ -1,10 +1,9 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { Dimensions, Image, Keyboard, Linking, Platform, ScrollView, Text, TextInput, TouchableOpacity, View, Pressable } from 'react-native';
-
-import Random from './utils/random-id';
+import { Dimensions, Image, Keyboard, Linking, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import SendIcon from './steps/common/SendIcon'
+import Random from './utils/random-id';
 
 const defaultBotAvatar = require('../../assets/images/avatar-horiz.png');
 
@@ -60,7 +59,8 @@ const ChatBot = props => {
         userBubbleColor,
         userFontColor,
         optionBubbleColor,
-        optionFontColor
+        optionFontColor,
+        firstStepId,
       } = props;
       const steps = {};
   
@@ -118,7 +118,7 @@ const ChatBot = props => {
   
       schema.checkInvalidIds(steps);
   
-      const firstStep = props.steps[0];
+      const firstStep = props.steps.find(step => step.id === firstStepId) || props.steps[0];
   
       if (firstStep.message) {
         const { message } = firstStep;
@@ -705,6 +705,7 @@ const ChatBot = props => {
 }
 
 ChatBot.propTypes = {
+  firstStepId: PropTypes.string,
   storageKey: PropTypes.string,
   avatarStyle: PropTypes.object,
   avatarWrapperStyle: PropTypes.object,
