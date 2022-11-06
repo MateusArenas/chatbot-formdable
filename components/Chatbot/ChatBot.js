@@ -5,7 +5,7 @@ import { Dimensions, Image, Keyboard, Linking, Platform, Pressable, ScrollView, 
 import SendIcon from './steps/common/SendIcon'
 import Random from './utils/random-id';
 
-const defaultBotAvatar = require('../../assets/images/avatar-horiz.png');
+const defaultBotAvatar = require('./steps/common/images/avatar-horiz.png');
 
 import { TextInputMask } from 'react-native-masked-text'
 

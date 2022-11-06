@@ -9,7 +9,7 @@ import ImageContainer from './ImageContainer';
 import TextMessage from './TextMessage';
 import TextStepContainer from './TextStepContainer';
 
-const defaultBotAvatar = require('../../../../assets/images/avatar-horiz.png');
+const defaultBotAvatar = require('../common/images/avatar-horiz.png');
 
 const TextStep = props => {
   /* istanbul ignore next */

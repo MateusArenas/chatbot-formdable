@@ -2,8 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
-// import { Bubbles } from 'react-native-loader';
-import DotsLoading from './DotsLoading';
+import Bubbles from './Bubbles';
 
 const Loading = (props) => {
   const { custom, color } = props;
@@ -24,7 +23,7 @@ const Loading = (props) => {
         color={color}
       /> */}
 
-      <DotsLoading />
+      <Bubbles />
 
       {/* {props?.children ? (
         <Text style={{ color, fontWeight: 'bold' }}>{props.children}</Text>

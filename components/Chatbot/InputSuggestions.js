@@ -18,7 +18,7 @@ const InputSuggestions = ({ suggestions, value, onChangeSuggestion }) => {
       ?.filter(suggestion => 
         (suggestion.match(new RegExp(value, "ig")) && suggestion !== value)
       )?.map?.(suggestion => (
-        <Pressable style={({ pressed }) => [
+        <Pressable key={suggestion} style={({ pressed }) => [
           { opacity: pressed ? 0.5 : 1 },
           { width: "100%", padding: 16, borderBottomWidth: 1, borderColor: "rgba(0,0,0,.1)" }
         ]}

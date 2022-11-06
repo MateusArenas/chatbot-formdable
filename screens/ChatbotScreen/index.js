@@ -8,7 +8,7 @@ import { Linking, NativeModules, Platform, StatusBar } from 'react-native';
 import * as FeatherIcon from 'react-native-feather';
 
 import { BottomSheetModal } from '../../components/Chatbot/BottomSheetModal'
-import DotsLoading from '../../components/Chatbot/steps/common/DotsLoading'
+import Bubbles from '../../components/Chatbot/steps/common/Bubbles'
 
 const { StatusBarManager } = NativeModules;
 
@@ -88,7 +88,7 @@ const SimpleForm = () => {
           //       </TouchableOpacity>
           //     </View>
           //   </View>
-          // }
+          // } 11908631000120
           hideHeader={false} 
           hideUserAvatar 
           userFontColor={theme['light'].userFontColor} 
